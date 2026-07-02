@@ -33,6 +33,18 @@ While it streams, a **steering console** fires signals at the running thread:
 
 ## Run it
 
+With [nub](https://nubjs.com) — one binary, no nvm, no tsx (it reads `.nvmrc` and
+auto-provisions Node 22):
+
+```bash
+brew install nubjs/tap/nub   # or: curl -fsSL https://nubjs.com/install.sh | bash
+nub install
+cp .env.example .env         # set OPENAI_API_KEY
+nub run dev                  # Mastra dev server
+```
+
+Or the classic path:
+
 ```bash
 nvm use                 # Node 22+
 npm install
@@ -44,14 +56,17 @@ Open **http://localhost:4111/demo** — the steering console. Keys `1`/`2`/`3`/`
 fire the actions, `0` starts a fresh incident. Or drive it from a terminal:
 
 ```bash
-npm run inject -- start  inc-demo
-npm run inject -- alert  inc-demo
-npm run inject -- steer  inc-demo "focus on the EU regions"
-npm run inject -- queue  inc-demo "draft the postmortem"
+nub scripts/inject.ts start  inc-demo     # nub runs TS directly — tsx not needed
+nub scripts/inject.ts alert  inc-demo
+nub scripts/inject.ts steer  inc-demo "focus on the EU regions"
+nub scripts/inject.ts queue  inc-demo "draft the postmortem"
 ```
 
-The slide deck for the talk is [`deck/slides.html`](deck/slides.html); the stage script
-is [`DEMO-RUNBOOK.md`](DEMO-RUNBOOK.md).
+(`npm run inject -- <action> <threadId> [text]` still works via tsx on the classic path.)
+
+The slide deck for the talk is [`deck/slides.html`](deck/slides.html); the stage
+mechanics are in [`DEMO-RUNBOOK.md`](DEMO-RUNBOOK.md) and the spoken narrative in
+[`NARRATIVE.md`](NARRATIVE.md).
 
 ## Layout
 

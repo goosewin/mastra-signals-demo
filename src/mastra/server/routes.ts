@@ -68,7 +68,7 @@ export const demoRoutes = [
           kind: "alert",
           priority: "high",
           summary:
-            "NEW PAGE — payment-gateway error rate at 4.0% and climbing (threshold 1%). Triggered 14:49 UTC.",
+            "NEW PAGE — payment-gateway error rate at 4.0% and climbing (threshold 1%). Triggered 09:49 UTC.",
           payload: { service: "payment-gateway", errorRate: "4.0%", threshold: "1%" },
           dedupeKey: "pagerduty:payment-gateway:error-rate",
         },

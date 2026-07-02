@@ -20,7 +20,7 @@ export const getServiceHealth = createTool({
     "Fleet-wide health snapshot. Returns status, error rate, and p99 latency per service.",
   inputSchema: z.object({}),
   execute: async () => {
-    await pace(2200);
+    await pace(4000);
     if (state.rolledBack) {
       return {
         services: [
@@ -55,7 +55,7 @@ export const queryMetrics = createTool({
     byRegion: z.boolean().optional(),
   }),
   execute: async ({ service, metric, byRegion }) => {
-    await pace(2500);
+    await pace(3200);
     if (state.rolledBack) {
       if (service === "checkout-api" && metric === "latency" && byRegion) {
         return {
@@ -84,13 +84,13 @@ export const queryMetrics = createTool({
             "us-east-1": { beforeMs: 300, nowMs: 610, change: "+103%" },
             "us-west-2": { beforeMs: 315, nowMs: 480, change: "+52%" },
           },
-          note: "Spike begins 14:32 UTC, sharply worse in EU regions.",
+          note: "Spike begins 09:32 UTC, sharply worse in EU regions.",
         };
       }
       return {
         window: "last 45m",
         p99Series: [310, 305, 320, 315, 2100, 3900, 4180],
-        spikeStart: "14:32 UTC",
+        spikeStart: "09:32 UTC",
         note: "Step change, not gradual — consistent with a deploy or config flip.",
       };
     }
@@ -100,7 +100,7 @@ export const queryMetrics = createTool({
         poolSize: 20,
         inUseSeries: [8, 9, 8, 10, 20, 20, 20],
         waitQueueDepth: 143,
-        note: "Pool pinned at max since 14:32 UTC. Waiters piling up. Pool size dropped from 100 to 20 at the same timestamp.",
+        note: "Pool pinned at max since 09:32 UTC. Waiters piling up. Pool size dropped from 100 to 20 at the same timestamp.",
       };
     }
     if (service === "payment-gateway" && metric === "error_rate") {
@@ -120,13 +120,13 @@ export const listRecentDeploys = createTool({
   description: "List the most recent production deploys across all services.",
   inputSchema: z.object({}),
   execute: async () => {
-    await pace(1800);
+    await pace(2500);
     return {
       deploys: [
         {
           service: "checkout-api",
           version: "v2.14.1",
-          deployedAt: "14:31 UTC (23 min ago)",
+          deployedAt: "09:31 UTC (23 min ago)",
           author: "priya@",
           summary: "refactor: swap hand-rolled DB pool for pgbouncer-style pooler",
           diffHint: "config default max_connections changed 100 -> 20",
@@ -134,7 +134,7 @@ export const listRecentDeploys = createTool({
         {
           service: "user-svc",
           version: "v9.2.0",
-          deployedAt: "11:02 UTC (3.7h ago)",
+          deployedAt: "05:02 UTC (4.5h ago)",
           author: "marco@",
           summary: "feat: add passkey support",
         },
@@ -155,7 +155,7 @@ export const getLogs = createTool({
   description: "Tail recent error logs for a service.",
   inputSchema: z.object({ service: z.string() }),
   execute: async ({ service }) => {
-    await pace(2000);
+    await pace(2800);
     if (state.rolledBack) {
       return {
         lines: [`no errors in the last 5m for ${service} — error volume dropped to zero after the rollback`],
@@ -164,12 +164,12 @@ export const getLogs = createTool({
     if (service === "checkout-api") {
       return {
         lines: [
-          "14:33:01 ERROR PoolTimeoutError: timed out waiting for connection (pool=20, waiters=98)",
-          "14:33:04 ERROR PoolTimeoutError: timed out waiting for connection (pool=20, waiters=112)",
-          "14:33:09 WARN  request latency 6.2s route=/v1/checkout region=eu-west-1",
-          "14:33:12 ERROR PoolTimeoutError: timed out waiting for connection (pool=20, waiters=143)",
+          "09:33:01 ERROR PoolTimeoutError: timed out waiting for connection (pool=20, waiters=98)",
+          "09:33:04 ERROR PoolTimeoutError: timed out waiting for connection (pool=20, waiters=112)",
+          "09:33:09 WARN  request latency 6.2s route=/v1/checkout region=eu-west-1",
+          "09:33:12 ERROR PoolTimeoutError: timed out waiting for connection (pool=20, waiters=143)",
         ],
-        note: "EU regions carry ~70% of current traffic (peak EU shopping hours), which is why they saturate first.",
+        note: "EU regions carry ~70% of current traffic (late-morning EU peak), which is why they saturate first.",
       };
     }
     return { lines: [`no recent errors for ${service}`] };
@@ -186,7 +186,7 @@ export const rollbackDeploy = createTool({
     reason: z.string(),
   }),
   execute: async ({ service, toVersion }) => {
-    await pace(3000);
+    await pace(4000);
     state.rolledBack = true;
     return {
       status: "rolled_back",

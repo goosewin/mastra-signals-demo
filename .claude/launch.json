@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mastra-dev",
+      "runtimeExecutable": "/Users/goosewin/.nvm/versions/node/v22.22.3/bin/node",
+      "runtimeArgs": ["node_modules/mastra/dist/index.js", "dev"],
+      "port": 4111
+    }
+  ]
+}

@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Beyond the Demo — Mastra Signals</title>
+<style>
+  :root {
+    --bg: #0a0a0b; --panel: #131316; --line: #26262c;
+    --text: #ececf1; --dim: #8b8b96; --green: #4ade80; --amber: #fbbf24;
+    --red: #f87171; --blue: #7dd3fc; --violet: #c4b5fd;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: var(--bg); color: var(--text);
+    font: 400 24px/1.5 -apple-system, "SF Pro Display", Inter, system-ui, sans-serif;
+    overflow: hidden; }
+  .slide {
+    position: absolute; inset: 0; display: none; flex-direction: column;
+    justify-content: center; padding: 6vh 9vw;
+  }
+  .slide.active { display: flex; }
+  .kicker {
+    color: var(--green); font: 700 clamp(14px, 1.4vw, 19px) ui-monospace, "SF Mono", monospace;
+    letter-spacing: .16em; text-transform: uppercase; margin-bottom: 2.2vh;
+  }
+  h1 { font-size: clamp(40px, 6.2vw, 92px); font-weight: 750; line-height: 1.06; letter-spacing: -.02em; }
+  h2 { font-size: clamp(34px, 4.6vw, 66px); font-weight: 720; line-height: 1.1; letter-spacing: -.015em; margin-bottom: 3.5vh; }
+  .sub { color: var(--dim); font-size: clamp(20px, 2vw, 30px); margin-top: 3vh; }
+  ul.big { list-style: none; font-size: clamp(24px, 2.5vw, 38px); line-height: 1.45; }
+  ul.big li { margin: 2.2vh 0; padding-left: 1.2em; position: relative; }
+  ul.big li::before { content: "→"; position: absolute; left: 0; color: var(--green); }
+  ul.big li.bad::before { content: "✕"; color: var(--red); }
+  ul.big .note { color: var(--dim); font-size: .68em; display: block; margin-top: .2em; }
+  strong { color: var(--green); font-weight: 650; }
+  em { color: var(--amber); font-style: normal; }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  pre {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    padding: 2.6vh 2.2vw; font-size: clamp(16px, 1.75vw, 27px); line-height: 1.55;
+    overflow: hidden;
+  }
+  pre .c { color: var(--dim); }
+  pre .g { color: var(--green); }
+  pre .b { color: var(--blue); }
+  pre .a { color: var(--amber); }
+  pre .v { color: var(--violet); }
+  .cols { display: flex; gap: 3vw; align-items: stretch; }
+  .cols > * { flex: 1; min-width: 0; }
+  table.verbs { border-collapse: collapse; width: 100%; font-size: clamp(18px, 1.9vw, 30px); }
+  table.verbs td { padding: 1.5vh 1.2vw; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.verbs td:first-child { font-family: ui-monospace, monospace; color: var(--green); white-space: nowrap; font-size: .92em; }
+  table.verbs td:last-child { color: var(--dim); }
+  .hud {
+    position: fixed; bottom: 18px; right: 24px; color: var(--dim);
+    font: 13px ui-monospace, monospace; z-index: 5; user-select: none;
+  }
+  .brand {
+    position: fixed; bottom: 18px; left: 24px; color: var(--dim);
+    font: 13px ui-monospace, monospace; z-index: 5;
+  }
+  .demo-badge {
+    display: inline-block; background: var(--red); color: #000; font-weight: 800;
+    padding: .35em 1em; border-radius: 10px; font-size: clamp(18px, 1.8vw, 26px);
+    letter-spacing: .06em; margin-bottom: 3vh;
+  }
+  .url { color: var(--blue); font-family: ui-monospace, monospace; }
+</style>
+</head>
+<body>
+
+<!-- 1 · title -->
+<section class="slide active">
+  <div class="kicker">Mastra × CopilotKit · AWS Builder Loft · July 2026</div>
+  <h1>Beyond the Demo:<br/>Steering <em>Live</em> Agents in Production</h1>
+  <p class="sub">Mastra Signals — talking to agents that are already running.<br/>
+  Dan Goosewin · <span class="url">github.com/goosewin</span></p>
+</section>
+
+<!-- 2 · the demo lie -->
+<section class="slide">
+  <div class="kicker">Every agent demo you've ever seen</div>
+  <h2>prompt in → tokens out → applause</h2>
+  <ul class="big">
+    <li>One user. One request. One response.</li>
+    <li>The world politely <strong>stops changing</strong> while the agent runs.</li>
+    <li>Nobody interrupts. Nothing breaks. Nothing arrives.</li>
+  </ul>
+  <p class="sub">That's not an agent. That's a slow function call.</p>
+</section>
+
+<!-- 3 · production is rude -->
+<section class="slide">
+  <div class="kicker">Then you ship it</div>
+  <h2>Production is rude.</h2>
+  <ul class="big">
+    <li>A webhook fires <em>40 seconds into the run</em> — CI fails, a page triggers, a customer replies.</li>
+    <li>The user watches the stream and goes <em>"no no no, not that"</em>.</li>
+    <li>Your options today:
+      <span class="note">✕ kill the run and re-prompt (lose all progress) &nbsp;·&nbsp; ✕ poll and cram context in up front (token soup) &nbsp;·&nbsp; ✕ build your own agent message bus (there goes the quarter)</span>
+    </li>
+  </ul>
+</section>
+
+<!-- 4 · signals -->
+<section class="slide">
+  <div class="kicker">Mastra Signals</div>
+  <h2>Talk to a <strong>running</strong> agent.</h2>
+  <table class="verbs">
+    <tr><td>sendMessage()</td><td>joins the active loop mid-run — or wakes an idle thread</td></tr>
+    <tr><td>queueMessage()</td><td>runs as the next turn, after the current run finishes</td></tr>
+    <tr><td>sendNotificationSignal()</td><td>durable inbox for external events — webhooks, CI, Slack, email</td></tr>
+    <tr><td>sendStateSignal()</td><td>thread-scoped state lanes — browser state, editor state, policy</td></tr>
+    <tr><td>sendSignal()</td><td>low-level system context, incl. processor-emitted reactive signals</td></tr>
+    <tr><td>subscribeToThread()</td><td>any client, anywhere, watches the same live stream</td></tr>
+  </table>
+</section>
+
+<!-- 5 · code: steer + webhook -->
+<section class="slide">
+  <div class="kicker">The whole trick, part 1</div>
+  <h2>Steer it. Interrupt it.</h2>
+  <div class="cols">
+<pre><span class="c">// human changes their mind mid-run</span>
+agent.<span class="g">sendMessage</span>(
+  <span class="a">'Focus on the EU regions first.'</span>,
+  { resourceId, threadId },
+)</pre>
+<pre><span class="c">// webhook lands mid-run</span>
+agent.<span class="g">sendNotificationSignal</span>({
+  source: <span class="a">'pagerduty'</span>,
+  priority: <span class="a">'high'</span>,
+  summary: <span class="a">'pg at 4% errors'</span>,
+  dedupeKey: <span class="a">'pd:pg:err'</span>,
+}, { resourceId, threadId })</pre>
+  </div>
+  <p class="sub">Active run? It's delivered into the loop. Idle thread? It wakes up. You don't care which.</p>
+</section>
+
+<!-- 6 · code: subscribe -->
+<section class="slide">
+  <div class="kicker">The whole trick, part 2</div>
+  <h2>Watch it from anywhere.</h2>
+<pre>
+<span class="v">const</span> sub = <span class="v">await</span> agent.<span class="g">subscribeToThread</span>({ threadId, resourceId })
+
+<span class="v">for await</span> (<span class="v">const</span> chunk <span class="v">of</span> sub.stream) {
+  render(chunk)  <span class="c">// text deltas, tool calls, results — every subscriber sees it all</span>
+}
+</pre>
+  <p class="sub">Threads are <strong>addressable</strong>. N browser tabs, a CLI, a Slack bot — same thread, same live stream.<br/>
+  One process: works out of the box. A fleet of instances: plug in Redis Streams pub/sub. Same code.</p>
+</section>
+
+<!-- 7 · demo -->
+<section class="slide">
+  <span class="demo-badge">LIVE DEMO</span>
+  <h2>SEV-1: checkout is melting.<br/>Let's steer the on-call agent.</h2>
+  <ul class="big">
+    <li>Page the agent — it investigates on its own</li>
+    <li>A <em>second</em> PagerDuty alert lands mid-run — webhook, not a prompt</li>
+    <li>I steer it mid-investigation, like a coworker</li>
+    <li>Queue the postmortem — it runs itself when the incident closes</li>
+    <li>Second tab = second responder, same live thread</li>
+  </ul>
+</section>
+
+<!-- 8 · how it works -->
+<section class="slide">
+  <div class="kicker">Under the hood</div>
+  <h2>Threads are processes you can address.</h2>
+  <ul class="big">
+    <li><strong>Route:</strong> every signal resolves to wake / deliver / queue / persist — depending on whether the thread is running</li>
+    <li><strong>Durability:</strong> notifications & state lanes live in memory/storage — agents catch up on what they missed</li>
+    <li><strong>Scale:</strong> in-process pub/sub by default → Redis Streams for cross-instance delivery & leasing</li>
+    <li><strong>Transport:</strong> built-in HTTP routes + SSE subscriptions — the demo UI is fetch() and EventSource, nothing else</li>
+  </ul>
+</section>
+
+<!-- 9 · unlocks -->
+<section class="slide">
+  <div class="kicker">What this unlocks</div>
+  <h2>Agents that live in your systems, not in a chat box.</h2>
+  <ul class="big">
+    <li><strong>Webhook-driven agents</strong> — GitHub, PagerDuty, Stripe events steer running work</li>
+    <li><strong>Multiplayer agents</strong> — whole team watches & steers one thread</li>
+    <li><strong>Human-in-the-loop that doesn't block</strong> — steer when needed, not approve-every-step</li>
+    <li><strong>Background agents with an inbox</strong> — long-lived threads that accumulate context for days</li>
+  </ul>
+</section>
+
+<!-- 10 · thesis -->
+<section class="slide">
+  <div class="kicker">Beyond the demo</div>
+  <h2>A production agent isn't a function call.<br/>It's a <strong>process you talk to</strong>.</h2>
+  <p class="sub">Signals make agents interruptible, steerable, observable — the three things<br/>every "works on my laptop" agent is missing.</p>
+</section>
+
+<!-- 11 · go build -->
+<section class="slide">
+  <div class="kicker">Go build</div>
+  <h2>Steal this demo.</h2>
+  <ul class="big">
+    <li>Docs — <span class="url">mastra.ai/docs/agents/signals</span></li>
+    <li>This demo — <span class="url">github.com/goosewin/mastra-signals-demo</span></li>
+    <li>New project — <span class="url">npm create mastra@latest</span></li>
+    <li>Signals are experimental — <em>break them and file issues</em></li>
+  </ul>
+  <p class="sub">Dan Goosewin · dan@goosewin.com · thanks for coming 🤘</p>
+</section>
+
+<div class="brand">mastra signals · beyond the demo</div>
+<div class="hud"><span id="pos">1</span>/<span id="total"></span></div>
+
+<script>
+  const slides = [...document.querySelectorAll(".slide")];
+  document.getElementById("total").textContent = slides.length;
+  let i = Math.min(parseInt(location.hash.slice(1) || "1", 10) - 1 || 0, slides.length - 1);
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, idx) => s.classList.toggle("active", idx === i));
+    document.getElementById("pos").textContent = i + 1;
+    location.hash = i + 1;
+  }
+  document.addEventListener("keydown", (e) => {
+    if (["ArrowRight", " ", "PageDown", "j"].includes(e.key)) show(i + 1);
+    if (["ArrowLeft", "PageUp", "k"].includes(e.key)) show(i - 1);
+    if (e.key === "Home") show(0);
+    if (e.key === "End") show(slides.length - 1);
+  });
+  document.addEventListener("click", (e) => {
+    if (e.clientX > innerWidth * 0.5) show(i + 1); else show(i - 1);
+  });
+  show(i);
+</script>
+</body>
+</html>

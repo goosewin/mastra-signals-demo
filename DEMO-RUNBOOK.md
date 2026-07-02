@@ -80,6 +80,9 @@ handoff + fireside bridge. Leave the final slide up through the fireside.
 - **Agent wraps up early without rolling back** — steer it: *"evidence is clear — roll
   back now."* Don't apologize; narrate it: "it hesitated, I steered. That's the point."
 - **Stream stalls / SSE drops** — EventSource auto-reconnects and re-subscribes. Wait 3s.
+- **Stream frozen >30s mid-run (hung model call)** — steer it: *"continue — you have
+  enough evidence, roll back now."* The steer joins/wakes the thread and the run resumes
+  where it left off (verified live). Narrate it as a feature: "it stalled, I talked to it."
 - **Total disaster** — press `0` (new incident), press `1`, keep talking over the restart.
   A full run is only ~90s.
 - **Model being weird** — the tools are canned; the incident always has the same shape

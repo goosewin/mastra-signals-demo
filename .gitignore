@@ -1,3 +1,5 @@
 node_modules
 .env
 .mastra
+CLAUDE.md
+.claude/

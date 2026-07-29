@@ -1,82 +1,68 @@
-# Beyond the Demo: Steering Live Agents in Production with Mastra Signals
+# Stop killing your agents
 
-A production-shaped incident-response agent you can **steer while it runs**, built on
-[Mastra Signals](https://mastra.ai/docs/agents/signals). Presented at *Beyond Demos:
-Production AI Agents with Mastra × CopilotKit* (AWS Builder Loft, SF, July 2026).
+A live demo of [Mastra Signals](https://mastra.ai/docs/agents/signals): a room full of
+people steering one running agent from their phones, mid-flight, without restarting it.
 
-The premise: a demo agent is request/response — the world politely stops changing while
-it runs. A production agent gets interrupted: webhooks fire mid-run, humans change their
-minds, state drifts. Signals make a running agent **addressable**:
+Built for **Agent (After) Hour** — Mastra × MongoDB, Motoring Coffee, San Francisco,
+29 July 2026.
 
-| Verb | What it does |
-|------|--------------|
-| `sendMessage()` | joins the active loop mid-run, or wakes an idle thread |
-| `queueMessage()` | runs as the next turn after the current run finishes |
-| `sendNotificationSignal()` | durable inbox for external events (webhooks, CI, Slack) |
-| `sendStateSignal()` | durable thread-scoped state lanes |
-| `sendSignal()` | low-level system context, incl. processor-emitted signals |
-| `subscribeToThread()` | any number of clients watch the same live stream |
+- Talk beats: [NARRATIVE.md](NARRATIVE.md)
+- Stage mechanics: [DEMO-RUNBOOK.md](DEMO-RUNBOOK.md)
+- Slides: [deck/slides.html](deck/slides.html)
+- The repo the agent fixes: [goosewin/agent-hour-live](https://github.com/goosewin/agent-hour-live)
 
-## What's in the demo
+## What happens
 
-An **SRE incident copilot** (`incident-agent`) investigates a checkout-latency SEV-1
-using canned-but-coherent observability tools (health, metrics, deploys, logs, rollback).
-While it streams, a **steering console** fires signals at the running thread:
+There's a little coffee-ordering page with four real bugs in it. The audience opens it on
+their phones, finds the bugs, and files reports — straight into MongoDB. An agent reads
+that backlog, runs the real test suite, fixes the bugs one at a time, and opens a real
+pull request. The room approves the PR by vote.
 
-- 🚨 a second PagerDuty alert lands mid-run (`sendNotificationSignal`) — the agent triages
-  it as a downstream symptom without restarting
-- 🎯 you steer it mid-investigation like a coworker (`sendMessage`)
-- ⏭ the postmortem is queued and runs itself after the incident closes (`queueMessage`)
-- 🧊 a deploy-freeze policy rides a durable state lane (`sendStateSignal`)
-- open the console in a second tab → same thread, same live stream (`subscribeToThread`
-  relayed over SSE)
+While it's working, anyone can type into the agent's running loop. Their message lands
+inside the turn — no restart, no lost context, evidence carried forward.
 
-## Run it
+Nothing is scripted. The tests, the file edits, the git branch, the pull request and the
+Mongo writes are all real.
 
-With [nub](https://nubjs.com) — one binary, no nvm, no tsx (it reads `.nvmrc` and
-auto-provisions Node 22):
+## The Signals surface
 
-```bash
-brew install nubjs/tap/nub   # or: curl -fsSL https://nubjs.com/install.sh | bash
-nub install
-cp .env.example .env         # set OPENAI_API_KEY
-nub run dev                  # Mastra dev server
-```
+Every verb in the demo, and where it shows up:
 
-Or the classic path:
+| Call | In the demo |
+|------|-------------|
+| `sendMessage()` | Pages the agent to start; also how the audience steers a live run |
+| `queueMessage()` | The changelog follow-up — waits its turn, interrupts nothing |
+| `sendNotificationSignal()` | An external monitor alert landing mid-run |
+| `sendStateSignal()` | The Mongo backlog as a durable snapshot lane the agent always sees fresh |
+| `subscribeToThread()` | The wall, every phone, and a server-side watcher, all on one stream |
+| `sendToolApproval()` | The room's vote resolving the parked `open_pull_request` call |
 
-```bash
-nvm use                 # Node 22+
-npm install
-cp .env.example .env    # set OPENAI_API_KEY
-npm run dev             # Mastra dev server
-```
+The wiring is about 250 lines: [routes.ts](src/mastra/server/routes.ts),
+[room.ts](src/lib/room.ts), [triage-agent.ts](src/mastra/agents/triage-agent.ts).
 
-Open **http://localhost:4111/demo** — the steering console. Keys `1`/`2`/`3`/`4`/`5`
-fire the actions, `0` starts a fresh incident. Or drive it from a terminal:
+## Running it
+
+Needs Node 22 (`.nvmrc`), Docker, `gh` authenticated, and an `OPENAI_API_KEY` in `.env`.
 
 ```bash
-nub scripts/inject.ts start  inc-demo     # nub runs TS directly — tsx not needed
-nub scripts/inject.ts alert  inc-demo
-nub scripts/inject.ts steer  inc-demo "focus on the EU regions"
-nub scripts/inject.ts queue  inc-demo "draft the postmortem"
+nub run dev            # or: nvm use && npm run dev
+./scripts/preflight.sh # mongo + tunnel + health checks
 ```
 
-(`npm run inject -- <action> <threadId> [text]` still works via tsx on the classic path.)
+Then open `/wall` on the projector and `/phone` on a phone.
 
-The slide deck for the talk is [`deck/slides.html`](deck/slides.html); the stage
-mechanics are in [`DEMO-RUNBOOK.md`](DEMO-RUNBOOK.md) and the spoken narrative in
-[`NARRATIVE.md`](NARRATIVE.md).
+`preflight.sh` refuses to pass unless the target repo still has its four failing tests —
+without them there's nothing for the agent to fix.
 
-## Layout
+## Notes for anyone stealing this
 
-| Path | Role |
-|------|------|
-| [`src/mastra/agents/incident-agent.ts`](src/mastra/agents/incident-agent.ts) | The SRE copilot: instructions, tools, memory |
-| [`src/mastra/tools/incident-tools.ts`](src/mastra/tools/incident-tools.ts) | Canned observability tools (stateful: recovery after rollback) |
-| [`src/mastra/server/routes.ts`](src/mastra/server/routes.ts) | Steering endpoints wrapping the Signals API + SSE relay |
-| [`src/mastra/server/dashboard-html.ts`](src/mastra/server/dashboard-html.ts) | The steering console (zero-dependency single page) |
-| [`scripts/inject.ts`](scripts/inject.ts) | Terminal signal injector |
-
-Signals are **experimental** — APIs may change. For multi-instance deployments, add
-Redis Streams pub/sub (`@mastra/redis-streams`) so signals route across processes.
+- **Back-pressure is not optional.** 250 people typing into one loop is a denial of
+  service. [room.ts](src/lib/room.ts) enforces one delivered steer every 7 seconds, a
+  25-second per-person cooldown, and a content filter, because it's going on a projector.
+- **The target repo lives outside this one on purpose.** `mastra dev` hot-reloads on
+  save; if the agent edited files inside this project, every edit would restart the
+  server and kill the run.
+- **Audience participation is additive, never load-bearing.** If nobody scans the QR the
+  demo is identical, just quieter.
+- The default `maxSteps` is 5, which is fewer than this job needs — see
+  `defaultOptions` in [triage-agent.ts](src/mastra/agents/triage-agent.ts).

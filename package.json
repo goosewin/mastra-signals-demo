@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Beyond the Demo: Steering Live Agents in Production with Mastra Signals — an incident-response agent you can steer mid-run via signals.",
+  "description": "Stop killing your agents \u2014 a room full of people steering one live agent with Mastra Signals.",
   "scripts": {
     "dev": "mastra dev",
     "deck": "open deck/slides.html",
-    "inject": "tsx scripts/inject.ts",
+    "preflight": "./scripts/preflight.sh",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -15,10 +15,13 @@
     "@mastra/libsql": "^1.14.3",
     "@mastra/memory": "^1.22.0",
     "dotenv": "^16.4.5",
+    "mongodb": "^7.5.0",
+    "qrcode": "^1.5.4",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^22.7.0",
+    "@types/qrcode": "^1.5.6",
     "mastra": "^1.17.0",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0"

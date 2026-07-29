@@ -33,6 +33,9 @@ import {
 } from "../../lib/room.js";
 
 const RESOURCE_ID = "agent-hour";
+
+const PROJECT_DIR =
+  process.env.PROJECT_DIR ?? "/Users/goosewin/Projects/mastra-signals-demo";
 const target = (threadId: string) => ({ resourceId: RESOURCE_ID, threadId });
 
 /** The thread the room is currently steering. Set on /demo/start. */
@@ -149,6 +152,13 @@ export const demoRoutes = [
   registerApiRoute("/phone", {
     method: "GET",
     handler: async (c) => c.html(phoneHtml),
+  }),
+
+  // Handy on stage: the deck on the same origin as everything else. `mastra dev` runs
+  // from its bundle output, so cwd is not the project root.
+  registerApiRoute("/deck", {
+    method: "GET",
+    handler: async (c) => c.html(await readFile(join(PROJECT_DIR, "deck/slides.html"), "utf8")),
   }),
 
   // QR rendered locally — the wall never reaches out to the network for it.

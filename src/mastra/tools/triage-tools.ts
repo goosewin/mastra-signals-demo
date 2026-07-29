@@ -14,6 +14,13 @@ export const REPO_DIR =
 /** Only these files are editable. The agent cannot wander the filesystem on stage. */
 const EDITABLE = ["src/pricing.ts"];
 
+/**
+ * Models reliably guess `.js` for browser code. Accept it everywhere rather than making
+ * the room watch the agent bounce off a filename error — this is a demo of steering, not
+ * of file extensions.
+ */
+const resolvePath = (path: string) => path.replace(/\.js$/, ".ts");
+
 const git = (args: string[]) => exec("git", args, { cwd: REPO_DIR, timeout: 30_000 });
 
 /** Fresh branch name per run so a second take never collides with the first. */
@@ -53,9 +60,10 @@ export const readSource = createTool({
     path: z.string().describe("Repo-relative path. The pricing logic is src/pricing.ts."),
   }),
   execute: async ({ path }) => {
+    const resolved = resolvePath(path);
     try {
-      const contents = await readFile(join(REPO_DIR, path), "utf8");
-      return { path, contents };
+      const contents = await readFile(join(REPO_DIR, resolved), "utf8");
+      return { path: resolved, contents };
     } catch {
       return { path, error: `No such file: ${path}. Editable files: ${EDITABLE.join(", ")}` };
     }
@@ -96,14 +104,15 @@ export const applyFix = createTool({
     summary: z.string().describe("One short sentence describing what you changed and why."),
   }),
   execute: async ({ path, contents, summary }) => {
-    if (!EDITABLE.includes(path)) {
+    const resolved = resolvePath(path);
+    if (!EDITABLE.includes(resolved)) {
       return { ok: false, error: `${path} is not editable. Editable files: ${EDITABLE.join(", ")}` };
     }
     if (contents.trim().length < 50) {
       return { ok: false, error: "That looks truncated — send the complete file contents." };
     }
-    await writeFile(join(REPO_DIR, path), contents, "utf8");
-    return { ok: true, path, summary, note: "File written. Run the checks to verify." };
+    await writeFile(join(REPO_DIR, resolved), contents, "utf8");
+    return { ok: true, path: resolved, summary, note: "File written. Run the checks to verify." };
   },
 });
 

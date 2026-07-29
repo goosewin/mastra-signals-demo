@@ -7,12 +7,8 @@ import { transform } from "esbuild";
 import { toString } from "qrcode";
 import { wallHtml } from "./wall-html.js";
 import { phoneHtml } from "./phone-html.js";
-import {
-  REPO_DIR,
-  resetRepo,
-  resetBranch,
-  countFailingChecks,
-} from "../tools/triage-tools.js";
+import { resetRepo, resetBranch, countFailingChecks } from "../tools/triage-tools.js";
+import { PROJECT_DIR, REPO_DIR } from "../../lib/paths.js";
 import {
   insertReport,
   recentReports,
@@ -34,8 +30,6 @@ import {
 
 const RESOURCE_ID = "agent-hour";
 
-const PROJECT_DIR =
-  process.env.PROJECT_DIR ?? "/Users/goosewin/Projects/mastra-signals-demo";
 const target = (threadId: string) => ({ resourceId: RESOURCE_ID, threadId });
 
 /** The thread the room is currently steering. Set on /demo/start. */
@@ -43,10 +37,7 @@ let activeThreadId: string | null = null;
 let pendingApproval: { toolCallId?: string; toolName: string } | null = null;
 let lastReportCount = 0;
 
-/**
- * The tunnel URL. Kept in a file outside the project so it survives a `mastra dev`
- * hot-reload — losing it mid-demo would silently break the QR code on the wall.
- */
+/** Tunnel URL, persisted outside the project so it survives a `mastra dev` reload. */
 const URL_FILE = join(homedir(), ".agent-hour-url");
 let publicUrl = process.env.PUBLIC_URL ?? "";
 function getPublicUrl() {
@@ -61,11 +52,10 @@ function getPublicUrl() {
 
 type MastraLike = { getAgent: (id: string) => any };
 
-/* ------------------------------------------------------------------ *
- * Background room loop.
- * Two jobs: drip audience steers into the live run under back-pressure,
- * and keep a durable state lane in sync with the Mongo backlog.
- * ------------------------------------------------------------------ */
+/**
+ * Background loop: delivers queued steers under back-pressure, and keeps the
+ * `field-reports` state lane in sync with Mongo.
+ */
 let loopStarted = false;
 function startRoomLoop(mastra: MastraLike) {
   if (loopStarted) return;
@@ -75,7 +65,7 @@ function startRoomLoop(mastra: MastraLike) {
     if (!activeThreadId) return;
     const agent = mastra.getAgent("triageAgent");
 
-    // 1. Deliver at most one audience steer per interval, straight into the run.
+    // At most one steer per interval, delivered into the active run.
     const steer = nextSteerToDeliver();
     if (steer) {
       try {
@@ -91,7 +81,7 @@ function startRoomLoop(mastra: MastraLike) {
       }
     }
 
-    // 2. Keep the field-report backlog visible as a durable state lane.
+    // Republish the backlog only when it changes; cacheKey dedupes the rest.
     try {
       const count = await reportCount();
       if (count !== lastReportCount) {
@@ -154,14 +144,13 @@ export const demoRoutes = [
     handler: async (c) => c.html(phoneHtml),
   }),
 
-  // Handy on stage: the deck on the same origin as everything else. `mastra dev` runs
-  // from its bundle output, so cwd is not the project root.
+  // Absolute path: `mastra dev` runs from its bundle output, so cwd is not the root.
   registerApiRoute("/deck", {
     method: "GET",
     handler: async (c) => c.html(await readFile(join(PROJECT_DIR, "deck/slides.html"), "utf8")),
   }),
 
-  // QR rendered locally — the wall never reaches out to the network for it.
+  // Rendered locally so the page makes no external requests.
   registerApiRoute("/qr", {
     method: "GET",
     handler: async (c) => {
@@ -180,9 +169,8 @@ export const demoRoutes = [
     handler: async (c) => c.html(await readFile(join(REPO_DIR, "index.html"), "utf8")),
   }),
 
-  // Transpile TS on the fly so the agent's edit is live on reload — no build step.
-  // Registered at both paths: index.html imports "./src/pricing.ts", which resolves
-  // against /cafe to /src/pricing.ts, and the repo stays honest as a standalone clone.
+  // Transpiled on request, so an edit is live on reload with no build step. Both paths:
+  // index.html's "./src/pricing.ts" resolves against /cafe to /src/pricing.ts.
   ...["/src/pricing.ts", "/cafe/src/pricing.ts"].map((path) =>
     registerApiRoute(path, {
       method: "GET",
@@ -388,7 +376,7 @@ export const demoRoutes = [
     },
   }),
 
-  /** Preflight: everything that can be dead before you walk on stage. */
+  /** Preflight — everything that has to be true before a run. */
   registerApiRoute("/demo/health", {
     method: "GET",
     handler: async (c) => {

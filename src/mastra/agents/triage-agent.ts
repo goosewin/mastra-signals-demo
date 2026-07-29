@@ -69,7 +69,6 @@ a glance.`,
   model: "openai/gpt-5.4",
   tools: triageTools,
   memory: new Memory({ storage }),
-  // The default is 5 steps — this run needs read → check → fix → re-check → PR, plus
-  // room for however many times the room changes its mind mid-flight.
+  // Defaults to 5, which truncates this run: read → fix → verify, per bug, then the PR.
   defaultOptions: { maxSteps: 30 },
 });

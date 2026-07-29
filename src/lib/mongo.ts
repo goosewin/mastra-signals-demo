@@ -25,7 +25,7 @@ export function connectMongo() {
 export const db = () => mongo.db("agenthour");
 export const reports = () => db().collection<FieldReport>("reports");
 
-/** True when Mongo is reachable — the wall shows this so a dead DB is never a mystery. */
+/** True when Mongo is reachable. Surfaced by /demo/health. */
 export async function mongoHealthy() {
   try {
     await connectMongo();
@@ -58,7 +58,7 @@ export async function markAllSeen() {
   await reports().updateMany({ seenByAgent: false }, { $set: { seenByAgent: true } });
 }
 
-/** Seeded so the agent has a real backlog before a single audience member scans the QR. */
+/** Starting backlog, so the agent has something to triage before anyone joins. */
 export async function seedReports() {
   await connectMongo();
   await reports().deleteMany({});

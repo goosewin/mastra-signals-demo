@@ -5,25 +5,21 @@ import { promisify } from "node:util";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { recentReports, markAllSeen } from "../../lib/mongo.js";
+import { REPO_DIR } from "../../lib/paths.js";
 
 const exec = promisify(execFile);
 
-export const REPO_DIR =
-  process.env.TARGET_REPO_DIR ?? "/Users/goosewin/Projects/agent-hour-live";
+export { REPO_DIR };
 
-/** Only these files are editable. The agent cannot wander the filesystem on stage. */
+/** Allowlist — the agent cannot reach the rest of the filesystem. */
 const EDITABLE = ["src/pricing.ts"];
 
-/**
- * Models reliably guess `.js` for browser code. Accept it everywhere rather than making
- * the room watch the agent bounce off a filename error — this is a demo of steering, not
- * of file extensions.
- */
+/** Models reliably guess `.js` for browser code; accept it rather than erroring. */
 const resolvePath = (path: string) => path.replace(/\.js$/, ".ts");
 
 const git = (args: string[]) => exec("git", args, { cwd: REPO_DIR, timeout: 30_000 });
 
-/** Fresh branch name per run so a second take never collides with the first. */
+/** Fresh branch per run, so repeat runs don't collide. */
 export const branchName = () => `fix/live-${Date.now().toString(36)}`;
 
 let activeBranch: string | null = null;
@@ -120,7 +116,7 @@ export const openPullRequest = createTool({
   id: "open_pull_request",
   description:
     "Open a real pull request against the order-page repository with your fix. Only call this once the checks pass.",
-  // The room votes on this one. The run pauses here until sendToolApproval() resolves it.
+  // The run suspends here until sendToolApproval() resolves it.
   requireApproval: true,
   inputSchema: z.object({
     title: z.string().describe("PR title."),
@@ -155,10 +151,7 @@ export const openPullRequest = createTool({
   },
 });
 
-/**
- * How many checks currently fail. Preflight uses this: the baseline must still be
- * broken, or there is nothing on stage for the agent to fix.
- */
+/** How many checks currently fail. Preflight asserts the baseline is still broken. */
 export async function countFailingChecks(): Promise<number> {
   try {
     await exec(process.execPath, ["test.ts"], { cwd: REPO_DIR, timeout: 30_000 });

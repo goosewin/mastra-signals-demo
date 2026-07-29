@@ -1,68 +1,78 @@
-# Stop killing your agents
+# Steering a live agent with Mastra Signals
 
-A live demo of [Mastra Signals](https://mastra.ai/docs/agents/signals): a room full of
-people steering one running agent from their phones, mid-flight, without restarting it.
+A demo of [Mastra Signals](https://mastra.ai/docs/agents/signals): many people steering
+one *already-running* agent from their phones, without restarting it.
 
-Built for **Agent (After) Hour** — Mastra × MongoDB, Motoring Coffee, San Francisco,
-29 July 2026.
+Built for Agent (After) Hour — Mastra × MongoDB, San Francisco, July 2026.
 
-- Talk beats: [NARRATIVE.md](NARRATIVE.md)
-- Stage mechanics: [DEMO-RUNBOOK.md](DEMO-RUNBOOK.md)
-- Slides: [deck/slides.html](deck/slides.html)
-- The repo the agent fixes: [goosewin/agent-hour-live](https://github.com/goosewin/agent-hour-live)
+## What it does
 
-## What happens
+A small coffee-ordering page ships with four real bugs
+([goosewin/agent-hour-live](https://github.com/goosewin/agent-hour-live)). People open it,
+find the bugs, and file reports into MongoDB. An agent reads that backlog, runs the real
+test suite, fixes the bugs one at a time, and opens a pull request — which only lands once
+the audience votes to approve it.
 
-There's a little coffee-ordering page with four real bugs in it. The audience opens it on
-their phones, finds the bugs, and files reports — straight into MongoDB. An agent reads
-that backlog, runs the real test suite, fixes the bugs one at a time, and opens a real
-pull request. The room approves the PR by vote.
+While the agent works, anyone can send a message into its running loop. The message is
+delivered mid-turn: no restart, no re-prompt, no lost context.
 
-While it's working, anyone can type into the agent's running loop. Their message lands
-inside the turn — no restart, no lost context, evidence carried forward.
-
-Nothing is scripted. The tests, the file edits, the git branch, the pull request and the
-Mongo writes are all real.
+The tests, file edits, git branch, pull request and database writes are all real. There is
+no scripted timeline and no canned telemetry.
 
 ## The Signals surface
 
-Every verb in the demo, and where it shows up:
+| Call | Where it appears |
+|------|------------------|
+| `sendMessage()` | Starts the run; also delivers each audience steer into the live loop |
+| `queueMessage()` | A follow-up turn that waits for the current one to finish |
+| `sendNotificationSignal()` | An external monitor alert arriving mid-run |
+| `sendStateSignal()` | The Mongo backlog as a snapshot lane, refreshed only when it changes |
+| `subscribeToThread()` | Projector, phones and a server-side watcher on one stream |
+| `sendToolApproval()` | Resolves the suspended `open_pull_request` call |
 
-| Call | In the demo |
-|------|-------------|
-| `sendMessage()` | Pages the agent to start; also how the audience steers a live run |
-| `queueMessage()` | The changelog follow-up — waits its turn, interrupts nothing |
-| `sendNotificationSignal()` | An external monitor alert landing mid-run |
-| `sendStateSignal()` | The Mongo backlog as a durable snapshot lane the agent always sees fresh |
-| `subscribeToThread()` | The wall, every phone, and a server-side watcher, all on one stream |
-| `sendToolApproval()` | The room's vote resolving the parked `open_pull_request` call |
-
-The wiring is about 250 lines: [routes.ts](src/mastra/server/routes.ts),
-[room.ts](src/lib/room.ts), [triage-agent.ts](src/mastra/agents/triage-agent.ts).
+Wiring: [routes.ts](src/mastra/server/routes.ts) ·
+[room.ts](src/lib/room.ts) ·
+[triage-agent.ts](src/mastra/agents/triage-agent.ts)
 
 ## Running it
 
-Needs Node 22 (`.nvmrc`), Docker, `gh` authenticated, and an `OPENAI_API_KEY` in `.env`.
+Requires Node 22 (see `.nvmrc`), Docker, an authenticated `gh`, and `OPENAI_API_KEY`
+in `.env`.
 
 ```bash
-nub run dev            # or: nvm use && npm run dev
-./scripts/preflight.sh # mongo + tunnel + health checks
+npm install
+npm run dev
+./scripts/preflight.sh
 ```
 
-Then open `/wall` on the projector and `/phone` on a phone.
+`preflight.sh` starts MongoDB and a Cloudflare tunnel, publishes the public URL, and
+verifies the target repo still has its four failing tests — without them there is nothing
+for the agent to fix.
 
-`preflight.sh` refuses to pass unless the target repo still has its four failing tests —
-without them there's nothing for the agent to fix.
+| Route | Purpose |
+|-------|---------|
+| `/wall` | Projector view: agent stream, live signal feed, vote |
+| `/phone` | Audience view: file a report, steer the run, vote |
+| `/cafe` | The order page, served from the target repo |
+| `/demo/health` | Preflight status |
 
-## Notes for anyone stealing this
+Clone the target repo to `../agent-hour-live`, or set `TARGET_REPO_DIR`.
 
-- **Back-pressure is not optional.** 250 people typing into one loop is a denial of
-  service. [room.ts](src/lib/room.ts) enforces one delivered steer every 7 seconds, a
-  25-second per-person cooldown, and a content filter, because it's going on a projector.
-- **The target repo lives outside this one on purpose.** `mastra dev` hot-reloads on
-  save; if the agent edited files inside this project, every edit would restart the
-  server and kill the run.
-- **Audience participation is additive, never load-bearing.** If nobody scans the QR the
-  demo is identical, just quieter.
-- The default `maxSteps` is 5, which is fewer than this job needs — see
+## Implementation notes
+
+- **Back-pressure is required, not optional.** Many clients writing into one loop needs
+  rate limiting. [room.ts](src/lib/room.ts) delivers at most one steer every 7 seconds,
+  enforces a 25-second per-sender cooldown, and filters content.
+- **The target repo lives outside this project deliberately.** `mastra dev` restarts on
+  file changes, and a restart terminates the active run — so the agent must not edit
+  files inside this tree.
+- **Audience input is additive.** With no participants the demo still runs; the operator
+  supplies the steers instead.
+- **`maxSteps` defaults to 5**, which silently truncates a run of this shape. See
   `defaultOptions` in [triage-agent.ts](src/mastra/agents/triage-agent.ts).
+- **Child processes use `process.execPath`**, since a `node` on `PATH` may be too old to
+  strip TypeScript types.
+
+## License
+
+MIT

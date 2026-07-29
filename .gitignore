@@ -1,5 +1,9 @@
 node_modules
 .env
 .mastra
+
+# Personal stage material — not for the public repo
 CLAUDE.md
 .claude/
+NARRATIVE.md
+DEMO-RUNBOOK.md

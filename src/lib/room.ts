@@ -1,7 +1,6 @@
 /**
- * Room state: everything that keeps 250 strangers typing into one live agent loop
- * from turning into noise. Nothing here is Mastra-specific — it's the moderation and
- * back-pressure layer you'd need in front of any multi-client agent.
+ * Moderation and back-pressure for many clients sharing one agent run.
+ * Nothing here is Mastra-specific.
  */
 
 export type Steer = { handle: string; text: string; at: number };
@@ -21,7 +20,7 @@ export const room = {
   delivered: [] as Steer[],
   received: 0,
   dropped: 0,
-  /** Speaker kill switch — when false, audience steers are collected but never delivered. */
+  /** When false, steers are collected but never delivered. */
   floodgatesOpen: false,
   lastDeliveredAt: 0,
 };
@@ -71,10 +70,7 @@ export function acceptSteer(handleRaw: string, textRaw: string): AcceptResult {
   return { ok: true, steer };
 }
 
-/**
- * Pull the next steer to deliver, respecting global back-pressure.
- * Returns null when the floodgates are shut or we delivered one too recently.
- */
+/** Next steer to deliver, or null if gated or rate-limited. */
 export function nextSteerToDeliver(): Steer | null {
   if (!room.floodgatesOpen) return null;
   if (Date.now() - room.lastDeliveredAt < GLOBAL_STEER_INTERVAL_MS) return null;
@@ -86,7 +82,7 @@ export function nextSteerToDeliver(): Steer | null {
   return steer;
 }
 
-/* ---------- Room vote on a pending tool approval ---------- */
+/* Vote on a pending tool approval. */
 
 export const vote = {
   open: false,

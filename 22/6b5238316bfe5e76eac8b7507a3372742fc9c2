@@ -1,0 +1,79 @@
+DEMO-RUNBOOK.md
+  s_2f8aa6afc9fc9e::t_973dc3da0b4cd8 1,3-8,13-23,26,29,32-49,51,55-149
+src/lib/room.ts
+  s_2f8aa6afc9fc9e::t_931b8fa752cdaa 1-137
+NARRATIVE.md
+  s_2f8aa6afc9fc9e::t_5d6ffaa30f8a7b 1,3-8,11-18,20,24,26-33,35,37-40,43-46,48,50-52,54-57,59-61,63,65,68-70,72-73,75-78,80-81,83,85-88,90-94,96-100,102,104-106,108,110-115,117-118,120,122-124,126-127,129,131-132,134,136,140-160,162,166-180
+src/mastra/agents/triage-agent.ts
+  s_2f8aa6afc9fc9e::t_23ea60359e3a82 1-33,51,55-71,75
+  s_2f8aa6afc9fc9e::t_ca1d942ce0b61b 72-74
+  s_2f8aa6afc9fc9e::t_2287e66be36a54 37-44,46-49
+  s_2f8aa6afc9fc9e::t_b61a1d40e63b4b 34-36,45,50,52-54
+src/mastra/tools/triage-tools.ts
+  s_2f8aa6afc9fc9e::t_f9a0b74212ddc8 15
+  s_2f8aa6afc9fc9e::t_883be7e0071159 149-162
+  s_2f8aa6afc9fc9e::t_75fed44ae98dd0 1-14,16-52,54-71,77-148,163-184
+  s_2f8aa6afc9fc9e::t_81c872fb69b7d7 72-76
+  s_2f8aa6afc9fc9e::t_e249e7a93c8ba9 53
+src/mastra/server/routes.ts
+  s_2f8aa6afc9fc9e::t_8d60f1acd7a709 241
+  s_2f8aa6afc9fc9e::t_b406d8fe5640a9 3-4
+  s_2f8aa6afc9fc9e::t_b11f828026c0ea 2,5-6,8-9,16-33,35,38-41,48,58-140,142-144,146,149-153,166-173,188-191,194-198,203-226,232-239,242-249,252-261,264-270,272,279-280,283-285,289,293-295,298,301-303,305,311-312,315-319,321-366,371-374,377-384,386-390,392,395-398,400,403-408,412-413,434,437
+  s_2f8aa6afc9fc9e::t_7f043a695b4ff7 375-376
+  s_2f8aa6afc9fc9e::t_29e1d9d05033c7 391,394
+  s_2f8aa6afc9fc9e::t_fb60365bfde00c 399
+  s_2f8aa6afc9fc9e::t_dedf936772db69 385,393,401-402
+  s_2f8aa6afc9fc9e::t_3acd8ce4ead9bd 10-15
+  s_2f8aa6afc9fc9e::t_08f2dd41b629a7 7
+  s_2f8aa6afc9fc9e::t_8fc52da12672bb 154-165
+  s_2f8aa6afc9fc9e::t_1dda57ab532e85 227-231
+  s_2f8aa6afc9fc9e::t_09b3707ba4168d 240,250-251
+  s_2f8aa6afc9fc9e::t_4822176f6c78b9 42-47,49-57
+  s_2f8aa6afc9fc9e::t_0445a362ca68e0 174-187
+deck/slides.html
+  s_2f8aa6afc9fc9e::t_5f2e7f33b6c776 6,9-17,20-21,23-26,28-29,31-36,38-48,50-51,53-57,59-66,68,72,74-82,85,87-91,94,96-100,102-103,106-112,115-119,122,125-134,137,139-143,145-152,156-166,169-172,176,179-181,185-186,189,191-192
+src/mastra/server/wall-html.ts
+  s_2f8aa6afc9fc9e::t_c12cf6ad432441 283-284,287-289
+  s_2f8aa6afc9fc9e::t_239b14a038b99d 172-182
+  s_2f8aa6afc9fc9e::t_070c6064cf0cd8 265
+  s_2f8aa6afc9fc9e::t_47be39ebfc3221 1-118,143-159,161-171,183-195,198-264,266-280,290-335,337-377,453-458
+  s_2f8aa6afc9fc9e::t_5005316e8afb0d 160
+  s_2f8aa6afc9fc9e::t_b522bc63dc4428 378-452
+  s_2f8aa6afc9fc9e::t_c71f733145b4ee 281-282,285-286
+  s_2f8aa6afc9fc9e::t_95442d3cb01d70 336
+  s_2f8aa6afc9fc9e::t_6628328c600f0d 196-197
+  s_2f8aa6afc9fc9e::t_dfbc6ecf4bbd73 119-142
+src/lib/mongo.ts
+  s_2f8aa6afc9fc9e::t_b247411dc6431f 1-85
+package.json
+  s_2f8aa6afc9fc9e::t_4d86e4e12b95dc 18
+  s_2f8aa6afc9fc9e::t_06d102e46d61c6 6,10
+  s_2f8aa6afc9fc9e::t_b433c172f496b8 19,24
+src/mastra/server/phone-html.ts
+  s_2f8aa6afc9fc9e::t_341f83790f3a8c 22-25,27-28,33-34
+  s_2f8aa6afc9fc9e::t_63c2b909dbfb31 1-21,26,29-32,35-179
+src/mastra/index.ts
+  s_2f8aa6afc9fc9e::t_864a22ed46c0d7 3,6-10,13
+README.md
+  s_2f8aa6afc9fc9e::t_077c75f8919d3c 1,3-4,6-7,9-12,14,16-19,21-22,24-25,27,29,31-38,40-43,45,48-49,52,54-55,57,59-68
+scripts/preflight.sh
+  s_2f8aa6afc9fc9e::t_2f360fda2f169e 1-82
+package-lock.json
+  s_2f8aa6afc9fc9e::t_ec84251c77222d 15-16,21,1714-1722,2429-2438,2452-2466,3013-3021,3368-3448,3739-3747,3830-3835,4380-4392,4472-4480,5212-5223,5530-5535,6229-6287,6502-6528,6556-6564,6586-6594,6740-6748,6869-6894,7141-7149,7159-7164,7606-7611,7753-7761,8025-8036,8374-8395,8411-8416,8484-8489,8513-8597
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "226b5238316bfe5e76eac8b7507a3372742fc9c2",
+  "prompts": {},
+  "sessions": {
+    "s_2f8aa6afc9fc9e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a6a0d90a-018e-492c-8534-5e3341f70339",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Dan Goosewin <dan@goosewin.com>"
+    }
+  }
+}

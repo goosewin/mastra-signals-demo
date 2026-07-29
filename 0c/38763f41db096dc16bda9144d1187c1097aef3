@@ -1,0 +1,53 @@
+.env.example
+  s_2f8aa6afc9fc9e::t_4ca1e3a16d1631 2-4
+src/lib/mongo.ts
+  s_2f8aa6afc9fc9e::t_151ba2e3fe25fa 61
+  s_2f8aa6afc9fc9e::t_272e2624788927 28
+src/mastra/agents/triage-agent.ts
+  s_2f8aa6afc9fc9e::t_f099dcbcc3527c 72
+README.md
+  s_2f8aa6afc9fc9e::t_5ee4f415f24736 1,3-4,6,8,10-14,16-17,19-20,24-31,33-35,39-40,43-45,48-74,76,78
+LICENSE
+  s_2f8aa6afc9fc9e::t_4cbf2c0b0e98d0 1-21
+src/lib/room.ts
+  s_2f8aa6afc9fc9e::t_b07c6d8b0addb6 73
+  s_2f8aa6afc9fc9e::t_f9024468690230 2-3,23
+  s_2f8aa6afc9fc9e::t_39565691f79c27 85
+src/lib/paths.ts
+  s_2f8aa6afc9fc9e::t_6e8e1b3bcce839 1-23
+src/mastra/server/routes.ts
+  s_2f8aa6afc9fc9e::t_4dd0db9ecce9a9 55-58
+  s_2f8aa6afc9fc9e::t_13453006e8d123 10-11
+  s_2f8aa6afc9fc9e::t_ab05247e70a7fe 172-173
+  s_2f8aa6afc9fc9e::t_9d4a218a5998ab 153
+  s_2f8aa6afc9fc9e::t_e47d43bd16aa3c 40
+  s_2f8aa6afc9fc9e::t_5068ab3e6314fb 68
+  s_2f8aa6afc9fc9e::t_8ade0f58c138b1 379
+  s_2f8aa6afc9fc9e::t_0a99721cd7acf0 147
+  s_2f8aa6afc9fc9e::t_25d8db3456364f 84
+src/mastra/tools/triage-tools.ts
+  s_2f8aa6afc9fc9e::t_38227eaa831e62 12
+  s_2f8aa6afc9fc9e::t_c0b704e5923894 14,17
+  s_2f8aa6afc9fc9e::t_a1231969e5fa46 22
+  s_2f8aa6afc9fc9e::t_8b87500a69a180 119
+  s_2f8aa6afc9fc9e::t_a6325e687b0e68 154
+  s_2f8aa6afc9fc9e::t_d6e0fa6e86b400 8
+.gitignore
+  s_2f8aa6afc9fc9e::t_d5658c21eabbe3 4-5,8-9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "0c38763f41db096dc16bda9144d1187c1097aef3",
+  "prompts": {},
+  "sessions": {
+    "s_2f8aa6afc9fc9e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a6a0d90a-018e-492c-8534-5e3341f70339",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Dan Goosewin <dan@goosewin.com>"
+    }
+  }
+}

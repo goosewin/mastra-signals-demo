@@ -55,6 +55,14 @@ fi
 step "Reset to a clean baseline"
 curl -sf -X POST "$BASE/demo/reset" >/dev/null && ok "repo, backlog and room reset"
 
+step "Routes"
+# /src/pricing.ts exercises esbuild — a dependency that resolves under a flat
+# node_modules but not an isolated one. Cheap check, silent failure otherwise.
+for route in /wall /phone /deck /cafe /src/pricing.ts; do
+  CODE=$(curl -s -o /dev/null -w '%{http_code}' "$BASE$route")
+  if [ "$CODE" = "200" ]; then ok "$route"; else bad "$route returned $CODE"; FAIL=1; fi
+done
+
 step "Health"
 HEALTH=$(curl -s "$BASE/demo/health")
 check() {

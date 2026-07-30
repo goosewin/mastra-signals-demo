@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Stop killing your agents \u2014 a room full of people steering one live agent with Mastra Signals.",
+  "description": "Stop killing your agents — a room full of people steering one live agent with Mastra Signals.",
   "scripts": {
     "dev": "mastra dev",
     "deck": "open deck/slides.html",
@@ -15,6 +15,7 @@
     "@mastra/libsql": "^1.14.3",
     "@mastra/memory": "^1.22.0",
     "dotenv": "^16.4.5",
+    "esbuild": "^0.28.1",
     "mongodb": "^7.5.0",
     "qrcode": "^1.5.4",
     "zod": "^4.4.3"

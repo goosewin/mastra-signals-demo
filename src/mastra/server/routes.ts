@@ -112,6 +112,8 @@ async function watchForApproval(mastra: MastraLike, threadId: string) {
   try {
     const sub = await agent.subscribeToThread({ threadId, resourceId: RESOURCE_ID });
     for await (const chunk of sub.stream) {
+      // A reset may have moved on to a new thread; stale runs must not reopen the vote.
+      if (threadId !== activeThreadId) return;
       if (chunk?.type === "tool-call-approval") {
         const payload = chunk.payload ?? {};
         pendingApproval = {

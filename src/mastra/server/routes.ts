@@ -267,7 +267,7 @@ export const demoRoutes = [
       startRoomLoop(mastra);
       void watchForApproval(mastra, threadId);
       agent.sendMessage(
-        "People are using the Motoring Coffee order page right now and filing bug reports. Read the backlog, work out which reports are real, and fix the worst one. Open a pull request when the checks pass.",
+        "People are using the Motoring Coffee order page right now and filing bug reports. Read the backlog, verify which reports are real, and fix exactly what has been reported — nothing more. Open a pull request once every reported bug is fixed.",
         target(threadId),
       );
       return c.json({ ok: true });

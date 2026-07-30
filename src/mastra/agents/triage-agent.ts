@@ -66,7 +66,7 @@ Decisiveness:
 Style: terse, calm, precise. Short sentences, no filler, no bullet-point dumps. You are
 being read off a projector at the back of a coffee shop — every line has to be legible at
 a glance.`,
-  model: "openai/gpt-5.4",
+  model: "openai/gpt-5.6-terra",
   tools: triageTools,
   memory: new Memory({ storage }),
   // Defaults to 5, which truncates this run: read → fix → verify, per bug, then the PR.

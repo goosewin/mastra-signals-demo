@@ -264,6 +264,7 @@ export const demoRoutes = [
       const { threadId } = await c.req.json();
       activeThreadId = threadId;
       lastReportCount = 0;
+      room.floodgatesOpen = true; // starting the run opens audience steering
       startRoomLoop(mastra);
       void watchForApproval(mastra, threadId);
       agent.sendMessage(

@@ -58,28 +58,8 @@ export async function markAllSeen() {
   await reports().updateMany({ seenByAgent: false }, { $set: { seenByAgent: true } });
 }
 
-/** Starting backlog, so the agent has something to triage before anyone joins. */
+/** Reset the backlog. It starts empty — every report comes from the room. */
 export async function seedReports() {
   await connectMongo();
   await reports().deleteMany({});
-  await reports().insertMany([
-    {
-      handle: "barista",
-      text: "One of the tip buttons says 1800%. A customer tapped it and nearly fainted.",
-      at: new Date(Date.now() - 1000 * 60 * 42),
-      seenByAgent: false,
-    },
-    {
-      handle: "opsteam",
-      text: "Cortado is listed at $45. It is good but it is not that good.",
-      at: new Date(Date.now() - 1000 * 60 * 17),
-      seenByAgent: false,
-    },
-    {
-      handle: "nightshift",
-      text: "Tip percentage seems to be charged on the tax too, not just the drinks.",
-      at: new Date(Date.now() - 1000 * 60 * 6),
-      seenByAgent: false,
-    },
-  ]);
 }

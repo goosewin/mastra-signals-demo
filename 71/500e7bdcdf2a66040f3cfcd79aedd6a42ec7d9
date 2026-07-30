@@ -1,0 +1,28 @@
+src/mastra/server/routes.ts
+  s_2f8aa6afc9fc9e::t_addf365f724f8a 33-34
+  s_2f8aa6afc9fc9e::t_82e6542fe5996a 106
+  s_2f8aa6afc9fc9e::t_b75155b150ef8b 119,121
+  s_2f8aa6afc9fc9e::t_18c3d9dc115ba6 227-229
+  s_2f8aa6afc9fc9e::t_9e0c7c3c679150 306-307,313,315,320,326-327
+src/mastra/server/wall-html.ts
+  s_2f8aa6afc9fc9e::t_8a0bce77eeda28 354-355
+  s_2f8aa6afc9fc9e::t_5cc339958561f1 102-117
+  s_2f8aa6afc9fc9e::t_4a4b375754c709 414-415,419-420
+  s_2f8aa6afc9fc9e::t_c049b3bc7bd6e4 183-187
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "71500e7bdcdf2a66040f3cfcd79aedd6a42ec7d9",
+  "prompts": {},
+  "sessions": {
+    "s_2f8aa6afc9fc9e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a6a0d90a-018e-492c-8534-5e3341f70339",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Dan Goosewin <dan@goosewin.com>"
+    }
+  }
+}

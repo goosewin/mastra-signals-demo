@@ -1,0 +1,22 @@
+src/mastra/server/routes.ts
+  s_2f8aa6afc9fc9e::t_a7d9d63c40b7c0 400
+src/lib/mongo.ts
+  s_2f8aa6afc9fc9e::t_2937aadd3897d7 74
+  s_2f8aa6afc9fc9e::t_48c7583d1aaf29 68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "cc008a4f2fdc9fc739abc4a249aadc63b7f6a8e3",
+  "prompts": {},
+  "sessions": {
+    "s_2f8aa6afc9fc9e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a6a0d90a-018e-492c-8534-5e3341f70339",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Dan Goosewin <dan@goosewin.com>"
+    }
+  }
+}

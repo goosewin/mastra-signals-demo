@@ -1,0 +1,26 @@
+src/lib/room.ts
+  s_2f8aa6afc9fc9e::t_024fde7de034ed 88
+  s_2f8aa6afc9fc9e::t_61f7d04420fe14 16-17
+src/mastra/server/routes.ts
+  s_2f8aa6afc9fc9e::t_7b2e7194c1e415 217
+src/mastra/server/wall-html.ts
+  s_2f8aa6afc9fc9e::t_f6ee10870eb328 315-324,330-332
+  s_2f8aa6afc9fc9e::t_5c3981ab54a1c2 440-441
+  s_2f8aa6afc9fc9e::t_d243595ffb07b0 333
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "278dd05d66ec06a4cc356f88192db5452a261cb7",
+  "prompts": {},
+  "sessions": {
+    "s_2f8aa6afc9fc9e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a6a0d90a-018e-492c-8534-5e3341f70339",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Dan Goosewin <dan@goosewin.com>"
+    }
+  }
+}

@@ -66,27 +66,60 @@ export const readSource = createTool({
   },
 });
 
+const STOPWORDS = new Set(["the", "and", "for", "are", "not", "with", "that", "this", "does"]);
+const words = (s: string) =>
+  s.toLowerCase().split(/[^a-z0-9%]+/).filter((w) => w.length >= 3 && !STOPWORDS.has(w));
+
+async function runSuite(): Promise<string> {
+  try {
+    // process.execPath, not "node" — the PATH node may be too old to strip types.
+    const { stdout } = await exec(process.execPath, ["test.ts"], { cwd: REPO_DIR, timeout: 30_000 });
+    return stdout;
+  } catch (err) {
+    const e = err as { stdout?: string; stderr?: string };
+    return e.stdout ?? e.stderr ?? "";
+  }
+}
+
 export const runChecks = createTool({
   id: "run_checks",
   description:
-    "Run the repository's test suite and return the real output. Use this to confirm which bugs are real before fixing, and to verify your fix afterwards.",
-  inputSchema: z.object({}),
-  execute: async () => {
-    try {
-      // process.execPath, not "node" — the PATH node may be too old to strip types.
-      const { stdout } = await exec(process.execPath, ["test.ts"], {
-        cwd: REPO_DIR,
-        timeout: 30_000,
-      });
-      return { exitCode: 0, allPassing: true, output: stdout.trim() };
-    } catch (err) {
-      const e = err as { stdout?: string; stderr?: string; code?: number };
+    "Run the checks for the behaviors you name. Pass focus keywords taken from the reports you are working on — include the general behavior word (price, tip, size, label, quantity, crash). Returns only the checks that match your focus.",
+  inputSchema: z.object({
+    focus: z
+      .string()
+      .describe("Keywords for the reported behaviors you're checking, e.g. 'tip percent buttons' or 'cortado price'."),
+  }),
+  execute: async ({ focus }) => {
+    const out = await runSuite();
+    // Parse "  ok   name" / "  FAIL name" (+ indented detail line) blocks.
+    const lines = out.trim().split("\n");
+    const results: { name: string; pass: boolean; detail?: string }[] = [];
+    for (let i = 0; i < lines.length; i++) {
+      const m = /^\s{2}(ok|FAIL)\s+(.*)$/.exec(lines[i] ?? "");
+      if (!m) continue;
+      const next = lines[i + 1] ?? "";
+      const detail = /^\s{6,}\S/.test(next) ? next.trim() : undefined;
+      results.push({ name: (m[2] ?? "").trim(), pass: m[1] === "ok", detail });
+    }
+    // Only checks matching the focus enter the conversation. The rest of the suite —
+    // including failures nobody has reported — stays out of the agent's context.
+    const fw = words(focus);
+    const matches = results.filter((r) => {
+      const tw = words(`${r.name} ${r.detail ?? ""}`);
+      return fw.some((f) => tw.some((t) => t.includes(f) || f.includes(t)));
+    });
+    if (!matches.length) {
       return {
-        exitCode: e.code ?? 1,
-        allPassing: false,
-        output: (e.stdout ?? "").trim() || (e.stderr ?? "").trim(),
+        focus,
+        note: "No checks match those keywords. Use different words from the report — name the behavior (price, tip, size, label, quantity, crash).",
       };
     }
+    return {
+      focus,
+      checks: matches.map((r) => ({ name: r.name, pass: r.pass, ...(r.detail ? { detail: r.detail } : {}) })),
+      allFocusedPassing: matches.every((r) => r.pass),
+    };
   },
 });
 
@@ -116,13 +149,25 @@ export const openPullRequest = createTool({
   id: "open_pull_request",
   description:
     "Open a real pull request against the order-page repository with your fix. Only call this once the checks pass.",
-  // The run suspends here until sendToolApproval() resolves it.
-  requireApproval: true,
+  // Suspends for sendToolApproval() — but only when there is actually something to
+  // ship. Prompting alone did not stop empty PRs; this check is deterministic.
+  requireApproval: async () => {
+    const { stdout } = await git(["status", "--porcelain"]);
+    return stdout.trim().length > 0;
+  },
   inputSchema: z.object({
     title: z.string().describe("PR title."),
     body: z.string().describe("PR description: what was broken, who reported it, what you changed."),
   }),
   execute: async ({ title, body }) => {
+    const { stdout: dirty } = await git(["status", "--porcelain"]);
+    if (!dirty.trim()) {
+      return {
+        ok: false,
+        error:
+          "Nothing to ship — no files have changed. Fix a reported bug first; do not retry until you have.",
+      };
+    }
     activeBranch = branchName();
     try {
       await git(["checkout", "-b", activeBranch]);

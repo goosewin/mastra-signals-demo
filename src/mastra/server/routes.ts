@@ -214,6 +214,7 @@ export const demoRoutes = [
       // moment someone files, not only once a run is live.
       const reports = await reportCount().catch(() => lastReportCount);
       return c.json({
+        epoch: room.epoch,
         participants: room.participants.size,
         received: room.received,
         dropped: room.dropped,

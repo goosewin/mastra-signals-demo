@@ -13,6 +13,8 @@ const MAX_LEN = 140;
 const lastSteerByHandle = new Map<string, number>();
 
 export const room = {
+  /** Bumped on every reset — clients that see it change discard their local state. */
+  epoch: 0,
   participants: new Set<string>(),
   /** Steers accepted but not yet delivered into the run. */
   queue: [] as Steer[],
@@ -83,6 +85,7 @@ export function nextSteerToDeliver(): Steer | null {
 }
 
 export function resetRoom() {
+  room.epoch++;
   room.queue.length = 0;
   room.delivered.length = 0;
   room.received = 0;

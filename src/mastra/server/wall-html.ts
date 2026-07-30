@@ -312,10 +312,24 @@ function pushFeed(key, handle, text, kind) {
 
 let lastReports = 0;
 let qrSet = "";
+let epoch = null;
+
+function clearBoard() {
+  streamEl.innerHTML = "";
+  feed.innerHTML = "";
+  toolEls.clear(); seen.clear(); interjected.clear();
+  textEl = null; prShown = ""; lastReports = 0;
+  $("pr").className = "";
+  connect();
+}
 
 async function poll() {
   let s;
   try { s = await (await fetch("/room/state")).json(); } catch { return; }
+
+  // Server was reset (by key 0 here, or from anywhere else) — drop all local state.
+  if (epoch === null) epoch = s.epoch;
+  else if (s.epoch !== epoch) { epoch = s.epoch; clearBoard(); }
 
   $("sParticipants").textContent = s.participants;
   $("sReports").textContent = s.reports;
@@ -423,11 +437,8 @@ document.addEventListener("keydown", async (e) => {
       await post("/demo/reset");
       threadId = "live" + Date.now();
       localStorage.setItem("threadId", threadId);
-      streamEl.innerHTML = "";
-      toolEls.clear(); seen.clear(); interjected.clear();
-      textEl = null; prShown = ""; floodgates = false;
-      $("pr").className = "";
-      connect();
+      floodgates = false;
+      clearBoard();
       toast("fresh thread — everything reset");
       break;
     }

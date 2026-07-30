@@ -32,23 +32,54 @@ else
 fi
 
 step "Tunnel"
-if pgrep -f "cloudflared tunnel" >/dev/null; then
-  ok "cloudflared already running"
+# A running cloudflared process does NOT mean a working tunnel: quick-tunnel hostnames
+# are deregistered on disconnect (laptop sleep, network change) while the process lives
+# on. Trusting `pgrep` here once put a dead QR code in front of a full room. The only
+# valid check is fetching the public URL from the outside — and if that fails, the old
+# process is worthless: kill it and mint a fresh tunnel.
+tunnel_url() { grep -oE "https://[a-z0-9-]+\.trycloudflare\.com" /tmp/cf.log 2>/dev/null | head -1; }
+# Resolve via public DNS (1.1.1.1), not the local cache: the machine that just watched
+# this hostname fail has negative-cached it, while the audience's resolvers see the
+# fresh record. An A record is required — phones on IPv4 networks can't use AAAA-only.
+publicly_reachable() {
+  H=${1#https://}
+  IP=$(dig +short @1.1.1.1 A "$H" 2>/dev/null | grep -E '^[0-9.]+$' | head -1)
+  [ -z "$IP" ] && return 1
+  curl -sf --max-time 10 --resolve "$H:443:$IP" "https://$H/phone" >/dev/null 2>&1
+}
+
+URL=$(tunnel_url)
+if [ -n "$URL" ] && pgrep -f "cloudflared tunnel" >/dev/null && publicly_reachable "$URL"; then
+  ok "existing tunnel verified from outside: $URL"
 else
+  [ -n "$URL" ] && printf "  stale tunnel (%s) — restarting\n" "$URL"
+  pkill -f "cloudflared tunnel" 2>/dev/null; sleep 1
+  rm -f /tmp/cf.log
   nohup cloudflared tunnel --url "$BASE" --no-autoupdate >/tmp/cf.log 2>&1 &
   printf "  waiting for URL"
   for _ in $(seq 1 30); do
-    grep -qE "https://[a-z0-9-]+\.trycloudflare\.com" /tmp/cf.log && break
+    [ -n "$(tunnel_url)" ] && break
     printf "."; sleep 2
   done
   printf "\n"
+  URL=$(tunnel_url)
 fi
-URL=$(grep -oE "https://[a-z0-9-]+\.trycloudflare\.com" /tmp/cf.log | head -1)
+
+# Fresh quick-tunnel hostnames take a few seconds to appear in DNS — retry before judging.
+REACHABLE=no
 if [ -n "$URL" ]; then
+  printf "  verifying from outside"
+  for _ in $(seq 1 12); do
+    publicly_reachable "$URL" && { REACHABLE=yes; break; }
+    printf "."; sleep 5
+  done
+  printf "\n"
+fi
+if [ "$REACHABLE" = "yes" ]; then
   curl -sf -X POST "$BASE/demo/public-url" -H 'Content-Type: application/json' \
-    -d "{\"url\":\"$URL\"}" >/dev/null && ok "$URL"
+    -d "{\"url\":\"$URL\"}" >/dev/null && ok "public URL serves /phone from the outside: $URL"
 else
-  bad "no tunnel URL — phones won't be able to join"
+  bad "tunnel is NOT publicly reachable — do not put the QR on screen"
   FAIL=1
 fi
 

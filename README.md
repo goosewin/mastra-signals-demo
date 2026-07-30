@@ -45,18 +45,46 @@ npm run dev
 ./scripts/preflight.sh
 ```
 
-`preflight.sh` starts MongoDB and a Cloudflare tunnel, publishes the public URL, and
-verifies the target repo still has its four failing tests — without them there is nothing
-for the agent to fix.
+`preflight.sh` starts MongoDB and a Cloudflare tunnel, verifies the public URL from the
+outside, and checks the target repo still has its seven failing tests — without them
+there is nothing for the agent to fix.
 
 | Route | Purpose |
 |-------|---------|
-| `/wall` | Projector view: agent stream, live signal feed, vote |
-| `/phone` | Audience view: file a report, steer the run, vote |
+| `/wall` | Projector view: agent stream, live room feed, approval banner |
+| `/phone` | Audience view: one box — bug reports and steers alike |
 | `/cafe` | The order page, served from the target repo |
 | `/demo/health` | Preflight status |
 
 Clone the target repo to `../agent-hour-live`, or set `TARGET_REPO_DIR`.
+
+## Making it reachable for a real audience
+
+This part bit us on stage. Read it before you put a QR code in front of a room.
+
+The audience's phones need a public URL for `/phone`. How you get one matters:
+
+- **Cloudflare quick tunnels (`cloudflared tunnel --url`) are ephemeral.** The
+  `*.trycloudflare.com` hostname is bound to the *connection*, not the process. Close
+  the laptop lid, switch wifi, or disconnect long enough and the hostname is
+  deregistered — DNS stops resolving for everyone — while `cloudflared` keeps running
+  as if nothing happened. A tunnel started at home is dead by the time you reach the
+  venue, and nothing on your machine tells you.
+- **Never trust a tunnel you didn't just verify from the outside.** The only check that
+  means anything is fetching the public URL the way a phone will:
+  `curl -sf https://YOUR-TUNNEL.trycloudflare.com/phone`. A running process, or a URL
+  that worked two hours ago, counts for nothing. `preflight.sh` does this check and
+  mints a fresh tunnel when it fails — run it **at the venue**, minutes before doors,
+  never only before you leave.
+- **For a real event, use a stable hostname:** a named Cloudflare tunnel (free, needs
+  a domain), ngrok with a reserved domain, or Tailscale Funnel. Those survive
+  reconnects; quick tunnels don't.
+- **Mind the concurrency.** Quick tunnels throttle around ~200 concurrent requests,
+  and this phone page polls every 1.5 s per client — a room of ~200 saturates one by
+  itself. Big rooms want a named/paid tunnel, a longer poll interval, or phones on the
+  venue LAN hitting the laptop's IP directly.
+- **If the tunnel dies mid-demo:** restart it and POST the new URL to
+  `/demo/public-url` — the wall's QR updates within a second, no reload.
 
 ## Implementation notes
 

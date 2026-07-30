@@ -351,7 +351,7 @@ async function poll() {
   if (s.participants > 0) $("rail").classList.add("compact");
 
   for (const d of s.delivered) {
-    pushFeed("s:" + d.at + d.handle, d.handle, d.text);
+    pushFeed(d.handle + "|" + d.text, d.handle, d.text);
     interjectOnce("i:" + d.at + d.handle, d.handle, d.text);
   }
 
@@ -360,7 +360,7 @@ async function poll() {
     try {
       const r = await (await fetch("/room/reports")).json();
       for (const rep of r.reports.slice(0, 5)) {
-        pushFeed("r:" + rep.at + rep.handle, rep.handle, rep.text, "report");
+        pushFeed(rep.handle + "|" + rep.text, rep.handle, rep.text, "report");
       }
     } catch {}
   }

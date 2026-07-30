@@ -99,23 +99,23 @@ export const wallHtml = /* html */ `<!doctype html>
   }
   .gate.open { border-color:var(--good); color:var(--good); border-style:solid; }
 
-  /* ---- vote takeover ---- */
-  #vote {
-    position:fixed; inset:0; background:#08080aee; backdrop-filter:blur(7px);
-    display:none; flex-direction:column; align-items:center; justify-content:center; gap:26px; z-index:10;
+  /* ---- pending approval banner ---- */
+  #approval {
+    position:fixed; left:34px; right:34px; bottom:30px; display:none;
+    align-items:center; gap:18px; z-index:14;
+    background:#1a1508; border:1px solid var(--amber); border-radius:14px;
+    padding:18px 24px; box-shadow:0 18px 50px #000a;
   }
-  #vote.on { display:flex; animation:fade .25s; }
-  @keyframes fade { from { opacity:0; } }
-  #vote h2 { font-size:44px; font-weight:700; letter-spacing:-.02em; text-align:center; }
-  #vote .sub { font-size:23px; color:var(--dim); max-width:900px; text-align:center; }
-  .bars { display:flex; gap:26px; align-items:flex-end; height:270px; }
-  .bar { width:230px; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; }
-  .bar .fill { width:100%; border-radius:12px 12px 0 0; transition:height .4s cubic-bezier(.2,.9,.3,1.1); min-height:8px; }
-  .bar.y .fill { background:var(--good); } .bar.n .fill { background:var(--bad); }
-  .bar .n { font-size:52px; font-weight:750; font-variant-numeric:tabular-nums; margin-bottom:9px; }
-  .bar .l { font-size:16px; text-transform:uppercase; letter-spacing:.11em; color:var(--dim); margin-top:11px; }
-  .verdict { font-size:30px; font-weight:700; }
-  .verdict.approved { color:var(--good); } .verdict.declined { color:var(--bad); }
+  #approval.on { display:flex; animation:slam .35s cubic-bezier(.2,.9,.3,1.4); }
+  #approval .pulse {
+    width:13px; height:13px; border-radius:50%; background:var(--amber);
+    animation:pulse 1.2s infinite; flex:none;
+  }
+  #approval b { font-size:22px; font-weight:650; display:block; }
+  #approval small { color:var(--dim); font:15px ui-monospace,monospace; display:block; margin-top:4px; }
+  #approval kbd {
+    border:1px solid var(--line); border-radius:5px; padding:0 7px; color:var(--amber);
+  }
 
   /* ---- toast + pull request banner ---- */
   #toast {
@@ -180,14 +180,12 @@ export const wallHtml = /* html */ `<!doctype html>
   <img id="prQr" alt="pull request QR" />
 </div>
 
-<div id="vote">
-  <h2>Ship it?</h2>
-  <div class="sub" id="voteSummary"></div>
-  <div class="bars">
-    <div class="bar y"><div class="n" id="vYes">0</div><div class="fill" id="fYes"></div><div class="l">ship it</div></div>
-    <div class="bar n"><div class="n" id="vNo">0</div><div class="fill" id="fNo"></div><div class="l">not yet</div></div>
+<div id="approval">
+  <span class="pulse"></span>
+  <div class="atext">
+    <b>Run suspended — <span id="approvalSummary"></span></b>
+    <small>sendToolApproval() · <kbd>5</kbd> ship it · <kbd>T</kbd> decline</small>
   </div>
-  <div class="verdict" id="verdict"></div>
 </div>
 
 <script type="module">
@@ -353,19 +351,8 @@ async function poll() {
     } catch {}
   }
 
-  const v = s.vote;
-  $("vote").className = v.open || v.resolved ? "on" : "";
-  if (v.open || v.resolved) {
-    $("voteSummary").textContent = v.summary;
-    const total = Math.max(1, v.yes + v.no);
-    $("vYes").textContent = v.yes; $("vNo").textContent = v.no;
-    $("fYes").style.height = (v.yes / total) * 100 + "%";
-    $("fNo").style.height = (v.no / total) * 100 + "%";
-    $("verdict").textContent = v.resolved === "approved" ? "The room said ship it."
-      : v.resolved === "declined" ? "The room said not yet." : "";
-    $("verdict").className = "verdict " + (v.resolved ?? "");
-    if (v.resolved) setTimeout(() => { $("vote").className = ""; }, 3200);
-  }
+  $("approval").className = s.approval.pending && !prShown ? "on" : "";
+  if (s.approval.pending) $("approvalSummary").textContent = s.approval.summary;
 }
 
 const interjected = new Set();
@@ -424,13 +411,13 @@ document.addEventListener("keydown", async (e) => {
       toast("queued the changelog — queueMessage()");
       break;
     case "5":
-      await post("/demo/resolve-vote", { approved: true });
-      toast("approved — sendToolApproval()");
+      await post("/demo/approval", { approved: true });
+      toast("shipping — sendToolApproval()");
       break;
     case "%":
     case "T":
-      await post("/demo/resolve-vote", { approved: false });
-      toast("declined — the room said no");
+      await post("/demo/approval", { approved: false });
+      toast("declined — sendToolApproval(false)");
       break;
     case "0": {
       await post("/demo/reset");

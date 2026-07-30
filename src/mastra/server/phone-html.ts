@@ -39,14 +39,6 @@ export const phoneHtml = /* html */ `<!doctype html>
   .hint { color:var(--dim); font-size:12.5px; margin-top:8px; }
   .flash { font-size:13.5px; margin-top:10px; min-height:19px; }
   .flash.ok { color:var(--good); } .flash.err { color:var(--amber); }
-  .vote { border-color:var(--accent); box-shadow:0 0 0 3px #8b7cf622; }
-  .vote h2 { font-size:16px; margin-bottom:5px; }
-  .vote .q { color:var(--dim); font-size:13.5px; margin-bottom:12px; }
-  .vote .row { display:flex; gap:10px; }
-  .vote .row button { margin-top:0; }
-  .yes { background:var(--good); color:#04120a; border-color:var(--good); }
-  .no  { background:#2a1618; color:var(--bad); border-color:#5f2224; }
-  .tally { text-align:center; color:var(--dim); font-size:13px; margin-top:10px; font-variant-numeric:tabular-nums; }
   .who { display:flex; align-items:center; gap:8px; color:var(--dim); font-size:13px; margin-bottom:14px; }
   .who b { color:var(--text); font-weight:600; }
   .who button { width:auto; margin:0; padding:5px 10px; font-size:12px; background:none; border:0; color:var(--accent); }
@@ -61,16 +53,6 @@ export const phoneHtml = /* html */ `<!doctype html>
 </header>
 
 <div class="who">you are <b id="who">…</b> <button id="rename">change</button></div>
-
-<div class="card vote hidden" id="voteCard">
-  <h2>The agent wants to open a pull request.</h2>
-  <div class="q" id="voteSummary"></div>
-  <div class="row">
-    <button class="yes" id="voteYes">Ship it</button>
-    <button class="no" id="voteNo">Not yet</button>
-  </div>
-  <div class="tally" id="voteTally"></div>
-</div>
 
 <div class="card">
   <label for="report">Found a bug on the order page?</label>
@@ -145,27 +127,9 @@ $("sendSteer").onclick = async () => {
   } else flash($("steerFlash"), r.reason ?? "Try again.", false);
 };
 
-let votedThisRound = false;
-async function castVote(approve) {
-  await post("/room/vote", { handle, approve });
-  votedThisRound = true;
-  $("voteYes").disabled = $("voteNo").disabled = true;
-}
-$("voteYes").onclick = () => castVote(true);
-$("voteNo").onclick = () => castVote(false);
-
 async function poll() {
   try {
     const s = await (await fetch("/room/state")).json();
-    const v = s.vote;
-    $("voteCard").classList.toggle("hidden", !v.open);
-    if (v.open) {
-      $("voteSummary").textContent = v.summary;
-      $("voteTally").textContent = \`\${v.yes} ship it · \${v.no} not yet\`;
-      if (!votedThisRound) $("voteYes").disabled = $("voteNo").disabled = false;
-    } else {
-      votedThisRound = false;
-    }
     $("steerHint").textContent = s.floodgatesOpen
       ? \`Live. One message from the room reaches the agent every \${Math.round(s.steerIntervalMs / 1000)}s — \${s.queued} waiting.\`
       : "Delivered into the agent's loop while it's still thinking.";

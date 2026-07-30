@@ -82,42 +82,6 @@ export function nextSteerToDeliver(): Steer | null {
   return steer;
 }
 
-/* Vote on a pending tool approval. */
-
-export const vote = {
-  open: false,
-  toolCallId: undefined as string | undefined,
-  toolName: "",
-  summary: "",
-  yes: new Set<string>(),
-  no: new Set<string>(),
-  resolved: null as "approved" | "declined" | null,
-};
-
-export function openVote(toolCallId: string | undefined, toolName: string, summary: string) {
-  vote.open = true;
-  vote.toolCallId = toolCallId;
-  vote.toolName = toolName;
-  vote.summary = summary;
-  vote.yes.clear();
-  vote.no.clear();
-  vote.resolved = null;
-}
-
-export function castVote(handleRaw: string, approve: boolean) {
-  const handle = sanitize(handleRaw).slice(0, 24) || "someone";
-  if (!vote.open) return { ok: false, reason: "No vote is open right now." };
-  room.participants.add(handle);
-  (approve ? vote.yes : vote.no).add(handle);
-  (approve ? vote.no : vote.yes).delete(handle);
-  return { ok: true };
-}
-
-export function closeVote(resolved: "approved" | "declined") {
-  vote.open = false;
-  vote.resolved = resolved;
-}
-
 export function resetRoom() {
   room.queue.length = 0;
   room.delivered.length = 0;
@@ -126,8 +90,4 @@ export function resetRoom() {
   room.floodgatesOpen = false;
   room.lastDeliveredAt = 0;
   lastSteerByHandle.clear();
-  vote.open = false;
-  vote.resolved = null;
-  vote.yes.clear();
-  vote.no.clear();
 }

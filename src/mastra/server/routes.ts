@@ -18,11 +18,7 @@ import {
 } from "../../lib/mongo.js";
 import {
   room,
-  vote,
   acceptSteer,
-  castVote,
-  closeVote,
-  openVote,
   nextSteerToDeliver,
   resetRoom,
   GLOBAL_STEER_INTERVAL_MS,
@@ -34,7 +30,8 @@ const target = (threadId: string) => ({ resourceId: RESOURCE_ID, threadId });
 
 /** The thread the room is currently steering. Set on /demo/start. */
 let activeThreadId: string | null = null;
-let pendingApproval: { toolCallId?: string; toolName: string } | null = null;
+let pendingApproval: { toolCallId?: string; toolName: string; summary: string } | null =
+  null;
 let lastReportCount = 0;
 
 /** Tunnel URL, persisted outside the project so it survives a `mastra dev` reload. */
@@ -106,7 +103,7 @@ function startRoomLoop(mastra: MastraLike) {
   }, 2500);
 }
 
-/** Server-side watcher: notices when the run pauses for approval and opens the room vote. */
+/** Notices when the run suspends for tool approval and flags it for the wall. */
 async function watchForApproval(mastra: MastraLike, threadId: string) {
   const agent = mastra.getAgent("triageAgent");
   try {
@@ -119,13 +116,9 @@ async function watchForApproval(mastra: MastraLike, threadId: string) {
         pendingApproval = {
           toolCallId: payload.toolCallId,
           toolName: payload.toolName ?? "open_pull_request",
+          summary: payload.args?.title ?? "Open a pull request with the fix",
         };
-        openVote(
-          payload.toolCallId,
-          pendingApproval.toolName,
-          payload.args?.title ?? "Open a pull request with the fix",
-        );
-        console.log("[approval] room vote opened:", pendingApproval);
+        console.log("[approval] pending:", pendingApproval);
       }
     }
   } catch (err) {
@@ -213,14 +206,6 @@ export const demoRoutes = [
     },
   }),
 
-  registerApiRoute("/room/vote", {
-    method: "POST",
-    handler: async (c) => {
-      const { handle, approve } = await c.req.json();
-      return c.json(castVote(String(handle ?? ""), Boolean(approve)));
-    },
-  }),
-
   /** Polled by the wall and every phone — the whole room state in one payload. */
   registerApiRoute("/room/state", {
     method: "GET",
@@ -239,14 +224,9 @@ export const demoRoutes = [
         delivered: room.delivered.slice(-8).reverse(),
         reports,
         publicUrl: getPublicUrl(),
-        vote: {
-          open: vote.open,
-          toolName: vote.toolName,
-          summary: vote.summary,
-          yes: vote.yes.size,
-          no: vote.no.size,
-          resolved: vote.resolved,
-        },
+        approval: pendingApproval
+          ? { pending: true, summary: pendingApproval.summary }
+          : { pending: false },
       });
     },
   }),
@@ -323,33 +303,32 @@ export const demoRoutes = [
     },
   }),
 
-  /** Resolve the room's vote into a real tool approval. */
-  registerApiRoute("/demo/resolve-vote", {
+  /** The speaker's ship button — resolves the suspended open_pull_request call. */
+  registerApiRoute("/demo/approval", {
     method: "POST",
     handler: async (c) => {
       const mastra = c.get("mastra") as MastraLike;
       const agent = mastra.getAgent("triageAgent");
       const body = await c.req.json().catch(() => ({}));
-      const approved = body.approved ?? vote.yes.size >= vote.no.size;
+      const approved = body.approved !== false;
       if (!activeThreadId) return c.json({ ok: false, reason: "no active thread" }, 400);
+      if (!pendingApproval) return c.json({ ok: false, reason: "nothing pending" }, 409);
 
       await agent.sendToolApproval({
         threadId: activeThreadId,
         resourceId: RESOURCE_ID,
-        toolCallId: pendingApproval?.toolCallId,
+        toolCallId: pendingApproval.toolCallId,
         approved,
         ...(approved
           ? {}
           : {
               declineContext: {
-                reason: "The room voted no.",
-                message:
-                  "The room declined this pull request. Ask what they want changed before proposing again.",
+                reason: "Not shipping this yet.",
+                message: "The PR was declined. Ask what should change before proposing again.",
               },
             }),
       });
 
-      closeVote(approved ? "approved" : "declined");
       pendingApproval = null;
       return c.json({ ok: true, approved });
     },

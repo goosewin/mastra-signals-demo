@@ -1,0 +1,19 @@
+src/mastra/agents/triage-agent.ts
+  s_2f8aa6afc9fc9e::t_ca8ccea4d08332 69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "de383b78997f8a59b6cc85d2e89d81955b94451f",
+  "prompts": {},
+  "sessions": {
+    "s_2f8aa6afc9fc9e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a6a0d90a-018e-492c-8534-5e3341f70339",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Dan Goosewin <dan@goosewin.com>"
+    }
+  }
+}

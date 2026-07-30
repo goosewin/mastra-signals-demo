@@ -32,6 +32,8 @@ const target = (threadId: string) => ({ resourceId: RESOURCE_ID, threadId });
 let activeThreadId: string | null = null;
 let pendingApproval: { toolCallId?: string; toolName: string; summary: string } | null =
   null;
+/** True between resolving a tool approval and the resumed run's finish chunk. */
+let holdUntilFinish = false;
 let lastReportCount = 0;
 
 /** Tunnel URL, persisted outside the project so it survives a `mastra dev` reload. */
@@ -61,6 +63,12 @@ function startRoomLoop(mastra: MastraLike) {
   setInterval(async () => {
     if (!activeThreadId) return;
     const agent = mastra.getAgent("triageAgent");
+
+    // Hold deliveries from the moment the run suspends on the PR approval until the
+    // resumed run fully finishes. A message sent into a suspended run is lost, and one
+    // sent into the resume window can be dropped too (verified live). Held steers then
+    // wake the idle thread, which delivers reliably.
+    if (pendingApproval || holdUntilFinish) return;
 
     // At most one steer per interval, delivered into the active run.
     const steer = nextSteerToDeliver();
@@ -111,6 +119,7 @@ async function watchForApproval(mastra: MastraLike, threadId: string) {
     for await (const chunk of sub.stream) {
       // A reset may have moved on to a new thread; stale runs must not reopen the vote.
       if (threadId !== activeThreadId) return;
+      if (chunk?.type === "finish") holdUntilFinish = false;
       if (chunk?.type === "tool-call-approval") {
         const payload = chunk.payload ?? {};
         pendingApproval = {
@@ -193,6 +202,22 @@ export const demoRoutes = [
     },
   }),
 
+  /**
+   * The one audience input. Every message is recorded in Mongo (the backlog the agent
+   * triages) and queued as a steer: mid-run it lands inside the loop, idle it wakes
+   * the thread.
+   */
+  registerApiRoute("/room/send", {
+    method: "POST",
+    handler: async (c) => {
+      const { handle, text } = await c.req.json();
+      const result = acceptSteer(String(handle ?? ""), String(text ?? ""));
+      if (!result.ok) return c.json({ ok: false, reason: result.reason });
+      await insertReport(result.steer.handle, result.steer.text);
+      return c.json({ ok: true, queued: room.queue.length });
+    },
+  }),
+
   registerApiRoute("/room/steer", {
     method: "POST",
     handler: async (c) => {
@@ -248,6 +273,9 @@ export const demoRoutes = [
       activeThreadId = threadId;
       lastReportCount = 0;
       room.floodgatesOpen = true; // starting the run opens audience steering
+      // Pre-run messages are already in the backlog the agent is about to read —
+      // don't also deliver them as steers.
+      room.queue.length = 0;
       startRoomLoop(mastra);
       void watchForApproval(mastra, threadId);
       agent.sendMessage(
@@ -331,6 +359,7 @@ export const demoRoutes = [
       });
 
       pendingApproval = null;
+      holdUntilFinish = true; // released by the resumed run's finish chunk
       return c.json({ ok: true, approved });
     },
   }),
@@ -344,6 +373,7 @@ export const demoRoutes = [
       resetRoom();
       activeThreadId = null;
       pendingApproval = null;
+      holdUntilFinish = false;
       lastReportCount = 0;
       return c.json({ ok: true });
     },

@@ -55,19 +55,11 @@ export const phoneHtml = /* html */ `<!doctype html>
 <div class="who">you are <b id="who">…</b> <button id="rename">change</button></div>
 
 <div class="card">
-  <label for="report">Found a bug on the order page?</label>
-  <textarea id="report" rows="3" placeholder="A large latte is cheaper than a medium…"></textarea>
-  <button class="primary" id="sendReport">File a report</button>
-  <div class="hint">Goes straight into MongoDB. The agent reads it live.</div>
-  <div class="flash" id="reportFlash"></div>
-</div>
-
-<div class="card">
-  <label for="steer">Or talk to the agent, right now</label>
-  <textarea id="steer" rows="2" placeholder="fix the pricing bug first, people are being overcharged"></textarea>
-  <button id="sendSteer">Send into the run</button>
-  <div class="hint" id="steerHint">Delivered into the agent's loop while it's still thinking.</div>
-  <div class="flash" id="steerFlash"></div>
+  <label for="msg">Tell the agent</label>
+  <textarea id="msg" rows="3" placeholder="the tip button says 1800%…"></textarea>
+  <button class="primary" id="send">Send</button>
+  <div class="hint" id="hint">Bug reports, steers, anything — it lands in the agent's running loop.</div>
+  <div class="flash" id="flash"></div>
 </div>
 
 <p style="text-align:center;color:var(--dim);font-size:13px;margin-top:16px">
@@ -105,34 +97,22 @@ async function post(url, body) {
   return res.json();
 }
 
-$("sendReport").onclick = async () => {
-  const text = $("report").value.trim();
+$("send").onclick = async () => {
+  const text = $("msg").value.trim();
   if (!text) return;
-  $("sendReport").disabled = true;
-  const r = await post("/room/report", { handle, text });
-  $("sendReport").disabled = false;
-  if (r.ok) { $("report").value = ""; flash($("reportFlash"), "Filed. It's in the backlog.", true); }
-  else flash($("reportFlash"), r.reason ?? "Try again.", false);
-};
-
-$("sendSteer").onclick = async () => {
-  const text = $("steer").value.trim();
-  if (!text) return;
-  $("sendSteer").disabled = true;
-  const r = await post("/room/steer", { handle, text });
-  $("sendSteer").disabled = false;
-  if (r.ok) {
-    $("steer").value = "";
-    flash($("steerFlash"), r.gated ? "Queued — the room isn't open yet." : "Sent into the live run.", true);
-  } else flash($("steerFlash"), r.reason ?? "Try again.", false);
+  $("send").disabled = true;
+  const r = await post("/room/send", { handle, text });
+  $("send").disabled = false;
+  if (r.ok) { $("msg").value = ""; flash($("flash"), "Sent.", true); }
+  else flash($("flash"), r.reason ?? "Try again.", false);
 };
 
 async function poll() {
   try {
     const s = await (await fetch("/room/state")).json();
-    $("steerHint").textContent = s.floodgatesOpen
-      ? \`Live. One message from the room reaches the agent every \${Math.round(s.steerIntervalMs / 1000)}s — \${s.queued} waiting.\`
-      : "Delivered into the agent's loop while it's still thinking.";
+    $("hint").textContent = s.floodgatesOpen
+      ? \`Live — one message from the room reaches the agent every \${Math.round(s.steerIntervalMs / 1000)}s. \${s.queued} waiting.\`
+      : "Bug reports, steers, anything — it lands in the agent's running loop.";
   } catch {}
 }
 poll();

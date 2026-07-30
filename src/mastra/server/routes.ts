@@ -397,7 +397,7 @@ export const demoRoutes = [
         publicUrl: getPublicUrl() || null,
         activeThread: activeThreadId,
         baselineFailing: failing,
-        baselineOk: failing === 4,
+        baselineOk: failing === 7,
       });
     },
   }),

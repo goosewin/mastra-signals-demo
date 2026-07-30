@@ -65,13 +65,13 @@ export async function seedReports() {
   await reports().insertMany([
     {
       handle: "barista",
-      text: "A large latte rings up cheaper than a medium. Customers have noticed.",
+      text: "One of the tip buttons says 1800%. A customer tapped it and nearly fainted.",
       at: new Date(Date.now() - 1000 * 60 * 42),
       seenByAgent: false,
     },
     {
       handle: "opsteam",
-      text: "Order page shows 'error' instead of a total if you type a drink we don't carry.",
+      text: "Cortado is listed at $45. It is good but it is not that good.",
       at: new Date(Date.now() - 1000 * 60 * 17),
       seenByAgent: false,
     },

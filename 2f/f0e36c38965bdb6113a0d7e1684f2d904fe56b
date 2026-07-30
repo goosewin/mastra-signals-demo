@@ -1,0 +1,22 @@
+src/mastra/agents/triage-agent.ts
+  s_2f8aa6afc9fc9e::t_79b4664c6f62dd 60-62
+  s_2f8aa6afc9fc9e::t_b7857ff27285be 34-39,42-43,45,47-53,55-56
+src/mastra/server/routes.ts
+  s_2f8aa6afc9fc9e::t_241e3526e4c358 270
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "2ff0e36c38965bdb6113a0d7e1684f2d904fe56b",
+  "prompts": {},
+  "sessions": {
+    "s_2f8aa6afc9fc9e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a6a0d90a-018e-492c-8534-5e3341f70339",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Dan Goosewin <dan@goosewin.com>"
+    }
+  }
+}

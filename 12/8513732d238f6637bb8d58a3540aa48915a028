@@ -1,0 +1,27 @@
+src/mastra/server/wall-html.ts
+  s_2f8aa6afc9fc9e::t_5485262dd0a7ae 363
+  s_2f8aa6afc9fc9e::t_dc767de4e92232 354
+scripts/preflight.sh
+  s_2f8aa6afc9fc9e::t_15ce20e4608ffd 68-69,71-78
+  s_2f8aa6afc9fc9e::t_0ef8759484b667 41-49
+  s_2f8aa6afc9fc9e::t_70b579e8a7a609 35-40,50-53,55-57,61,65,67,80,82
+README.md
+  s_2f8aa6afc9fc9e::t_f92747d22b9324 48-50,54-55,61-87
+  s_2f8aa6afc9fc9e::t_e7c35e02c48597 88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "128513732d238f6637bb8d58a3540aa48915a028",
+  "prompts": {},
+  "sessions": {
+    "s_2f8aa6afc9fc9e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a6a0d90a-018e-492c-8534-5e3341f70339",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Dan Goosewin <dan@goosewin.com>"
+    }
+  }
+}
